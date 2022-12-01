@@ -1,0 +1,27 @@
+{
+    "id": "tools.moimz.imodules.modules.attachment",
+    "icon": "xi-crown",
+    "title": {
+        "ko": "첨부파일"
+    },
+    "version": "4.0.0",
+    "description": {
+        "ko": "아이모듈에서 업로드되는 모든 첨부파일을 관리하는 모듈입니다."
+    },
+    "author": {
+        "name": "Arzz",
+        "email": "arzz@arzz.com"
+    },
+    "homepage": "https://www.imodules.io",
+    "versionChecker": "https://api.moimz.com/download/latest",
+    "dependencies": {
+        "core": "4.0.0"
+    },
+    "language": "ko",
+    "configs": {
+        "max_size": {
+            "type": "number",
+            "default": 100
+        }
+    }
+}
