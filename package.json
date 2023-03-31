@@ -1,6 +1,6 @@
 {
     "id": "tools.moimz.imodules.modules.attachment",
-    "icon": "xi-crown",
+    "icon": "xi xi-download-my",
     "title": {
         "ko": "첨부파일"
     },
@@ -19,9 +19,30 @@
     },
     "language": "ko",
     "configs": {
-        "max_size": {
+        "template": {
+            "type": "template",
+            "label": {
+                "ko": "기본템플릿"
+            },
+            "target": {
+                "type": "module",
+                "name": "attachment"
+            },
+            "default": "default"
+        },
+        "max_file_size": {
             "type": "number",
-            "default": 100
+            "label": {
+                "ko": "최대파일용량"
+            },
+            "default": 20
+        },
+        "max_upload_size": {
+            "type": "number",
+            "label": {
+                "ko": "총업로드용량"
+            },
+            "default": 200
         }
     }
 }
