@@ -168,7 +168,7 @@ class Attachment extends \Module
 
         switch ($type) {
             case 'svg':
-                $svg = simplexml_load_string(file_get_contents($path));
+                $svg = simplexml_load_string(File::read($path));
                 $width = intval($svg->attributes()->width);
                 $height = intval($svg->attributes()->height);
                 break;
@@ -290,6 +290,24 @@ class Attachment extends \Module
             header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 3600) . ' GMT');
             header('Cache-Control: max-age=3600');
             header('Pragma: public');
+
+            readfile($path);
+            exit();
+        } else {
+            header('Content-Type: ' . $file->getMime());
+            header('Content-Length: ' . filesize($path));
+            header('Expires: 0');
+            header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+            header('Cache-Control: private', false);
+            header('Pragma: public');
+            header('Expires: 0');
+            header(
+                'Content-Disposition: attachment; filename="' .
+                    rawurlencode($name) .
+                    '"; filename*=UTF-8\'\'' .
+                    rawurlencode($name)
+            );
+            header('Content-Transfer-Encoding: binary');
 
             readfile($path);
             exit();
