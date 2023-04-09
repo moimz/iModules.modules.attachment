@@ -1,13 +1,13 @@
 <?php
 /**
- * 이 파일은 아이모듈 게시판모듈의 일부입니다. (https://www.imodules.io)
+ * 이 파일은 아이모듈 첨부파일모듈의 일부입니다. (https://www.imodules.io)
  *
  * 첨부파일모듈에 의해 첨부된 파일 구조체를 정의한다.
  *
  * @file /modules/attachment/dto/File.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2022. 12. 1.
+ * @modified 2023. 4. 10.
  */
 namespace modules\attachment\dto;
 class File
@@ -150,7 +150,9 @@ class File
                 $type = 'download';
             }
         }
-        return \Configs::dir() . '/files/' . $type . '/' . $this->_file_id . '/' . urlencode($this->_name);
+
+        $route = '/files/' . $type . '/' . $this->_file_id . '/' . urlencode($this->_name);
+        return \Configs::dir() . (\Domains::has()?->isRewrite() == true ? $route : '/?route=' . $route);
     }
 }
 ?>
