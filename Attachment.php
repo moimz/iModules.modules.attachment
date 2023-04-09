@@ -8,13 +8,9 @@
  * @file /modules/attachment/Attachment.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2022. 12. 1.
+ * @modified 2023. 4. 10.
  */
 namespace modules\attachment;
-use \Router;
-use \Route;
-use \ErrorHandler;
-use \ErrorData;
 class Attachment extends \Module
 {
     /**
@@ -30,7 +26,29 @@ class Attachment extends \Module
         /**
          * 모듈 라우터를 초기화한다.
          */
-        Router::add('/files/{type}/{file_id}/{name}', '#', 'blob', [$this, 'doRoute']);
+        \Router::add('/files/{type}/{file_id}/{name}', '#', 'blob', [$this, 'doRoute']);
+    }
+
+    /**
+     * 첨부파일 임시저장경로를 가져온다.
+     *
+     * @param string $name 임시저장파일명 (NULL 인 경우 임시저장폴더경로만 가져온다.)
+     * @return string $path 경로
+     */
+    public function getTempPath(?string $name = null): string
+    {
+        $path = \Configs::attachment() . '/temp';
+        if (is_dir($path) === false) {
+            if (mkdir($path) === false) {
+                \ErrorHandler::print($this->error('NOT_WRITABLE'));
+            }
+        }
+
+        if ($name !== null) {
+            $path .= '/' . $name;
+        }
+
+        return $path;
     }
 
     /**
@@ -168,7 +186,7 @@ class Attachment extends \Module
 
         switch ($type) {
             case 'svg':
-                $svg = simplexml_load_string(File::read($path));
+                $svg = simplexml_load_string(\File::read($path));
                 $width = intval($svg->attributes()->width);
                 $height = intval($svg->attributes()->height);
                 break;
@@ -269,11 +287,11 @@ class Attachment extends \Module
      * @param int $file_id 파일고유값
      * @param string $name 파일명
      */
-    public function doRoute(Route $route, string $type, int $file_id, string $name): void
+    public function doRoute(\Route $route, string $type, int $file_id, string $name): void
     {
         $file = $this->getFile($file_id);
         if ($file === null || is_file($file->getPath()) == false) {
-            ErrorHandler::print($this->error('NOT_FOUND_FILE', $route->getUrl()));
+            \ErrorHandler::print($this->error('NOT_FOUND_FILE', $route->getUrl()));
         }
 
         session_write_close();
@@ -322,11 +340,11 @@ class Attachment extends \Module
      * @param ?object $details 에러와 관련된 추가정보
      * @return \ErrorData $error
      */
-    public function error(string $code, ?string $message = null, ?object $details = null): ErrorData
+    public function error(string $code, ?string $message = null, ?object $details = null): \ErrorData
     {
         switch ($code) {
             case 'NOT_FOUND_FILE':
-                $error = ErrorHandler::data();
+                $error = \ErrorHandler::data();
                 $error->message = $this->getErrorText($code);
                 $error->suffix = $message;
                 return $error;
