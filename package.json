@@ -18,6 +18,8 @@
         "core": "4.0.0"
     },
     "language": "ko",
+    "global": true,
+    "admin": true,
     "configs": {
         "template": {
             "type": "template",
@@ -43,6 +45,43 @@
                 "ko": "총업로드용량"
             },
             "default": 200
+        }
+    },
+    "databases": {
+        "drafts": {
+            "columns": {
+                "hash": {
+                    "type": "char",
+                    "length": 50,
+                    "comment": "파일고유값"
+                },
+                "name": {
+                    "type": "varchar",
+                    "length": 255,
+                    "comment": "파일명"
+                },
+                "path": {
+                    "type": "varchar",
+                    "length": 255,
+                    "comment": "파일경로"
+                },
+                "size": {
+                    "type": "bigint",
+                    "comment": "파일크기"
+                },
+                "created_at": {
+                    "type": "int",
+                    "comment": "생성일자"
+                },
+                "expired_at": {
+                    "type": "int",
+                    "comment": "만료일자"
+                }
+            },
+            "indexes": {
+                "hash": "primary_key"
+            },
+            "comment": "첨부파일 업로드 대기목록"
         }
     }
 }
