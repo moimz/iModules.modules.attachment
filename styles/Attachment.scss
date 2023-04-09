@@ -1,0 +1,105 @@
+/**
+ * 이 파일은 아이모듈 관리자모듈의 일부입니다. (https://www.imodules.io)
+ *
+ * 폼 관련 스타일시트를 정의한다.
+ * 
+ * @file /styles/Admin.Form.scss
+ * @author Arzz <arzz@arzz.com>
+ * @license MIT License
+ * @modified 2023. 4. 10.
+ */
+div[data-module='attachment'] {
+    i.icon {
+        display: inline-block;
+        vertical-align: middle;
+        background-position: 50% 50%;
+        background-repeat: no-repeat;
+        background-image: url(../images/file.png);
+        background-size: contain;
+
+        &[data-type='image'] {
+            background-image: url(../images/file_type_image.png);
+        }
+
+        &[data-type='audio'] {
+            background-image: url(../images/file_type_audio.png);
+        }
+
+        &[data-type='video'] {
+            background-image: url(../images/file_type_video.png);
+        }
+
+        &[data-type='archive'] {
+            background-image: url(../images/file_type_archive.png);
+        }
+
+        &[data-type='document'] {
+            background-image: url(../images/file_type_document.png);
+        }
+
+        &[data-type='text'] {
+            background-image: url(../images/file_type_document.png);
+        }
+
+        &[data-extension='ppt'],
+        &[data-extension='pptx'] {
+            background-image: url(../images/file_extension_ppt.png);
+        }
+
+        &[data-extension='doc'],
+        &[data-extension='docx'] {
+            background-image: url(../images/file_extension_doc.png);
+        }
+
+        &[data-extension='xls'],
+        &[data-extension='xlsx'] {
+            background-image: url(../images/file_extension_xls.png);
+        }
+
+        &[data-extension='hwp'],
+        &[data-extension='hwpx'] {
+            background-image: url(../images/file_extension_hwp.png);
+        }
+
+        &[data-extension='pdf'] {
+            background-image: url(../images/file_extension_pdf.png);
+        }
+    }
+
+    &[data-role='file'] {
+        > div[data-role='preview'] {
+            position: relative;
+
+            > i.icon {
+                display: block;
+                position: absolute;
+                z-index: 0;
+            }
+
+            > div.image {
+                display: block;
+                position: absolute;
+                z-index: 1;
+                width: 100%;
+                height: 100%;
+                top: 0;
+                left: 0;
+                background-size: cover;
+                background-position: 50% 50%;
+                background-repeat: no-repeat;
+            }
+        }
+
+        > label[data-role='name'] {
+            overflow: hidden;
+
+            > b {
+                display: block;
+                word-break: break-all;
+            }
+        }
+
+        > small[data-role='size'] {
+        }
+    }
+}
