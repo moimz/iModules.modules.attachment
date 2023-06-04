@@ -16,17 +16,16 @@ if (defined('__IM_PROCESS__') == false) {
     exit();
 }
 
-$hash = $path;
-$file = $me
+$draft_id = $path;
+$draft = $me
     ->db()
     ->select()
     ->from($me->table('drafts'))
-    ->where('hash', $hash)
+    ->where('draft_id', $draft_id)
     ->getOne();
 
-if ($file === null) {
+if ($draft === null || $draft->expired_at < time()) {
     $results->success = false;
-    $results->hash = $hash;
     $results->message = $me->getErrorText('NOT_FOUND_DRAFT');
     return;
 }
@@ -37,7 +36,7 @@ if (preg_match('/bytes ([0-9]+)\-([0-9]+)\/([0-9]+)/', $_SERVER['HTTP_CONTENT_RA
     $rangeEnd = intval($range[2]);
     $fileSize = intval($range[3]);
 
-    if ($fileSize != $file->size) {
+    if ($fileSize != $draft->size) {
         $results->success = false;
         $results->message = $me->getErrorText('INVALID_FILE_SIZE');
         return;
@@ -51,10 +50,12 @@ if (preg_match('/bytes ([0-9]+)\-([0-9]+)\/([0-9]+)/', $_SERVER['HTTP_CONTENT_RA
         return;
     }
 
+    $filePath = \Configs::attachment() . '/' . $draft->path;
+
     if ($rangeStart == 0) {
-        $fp = fopen($me->getTempPath($file->path), 'w');
+        $fp = fopen($filePath, 'w');
     } else {
-        $fp = fopen($me->getTempPath($file->path), 'a');
+        $fp = fopen($filePath, 'a');
     }
 
     fseek($fp, $rangeStart);
@@ -62,14 +63,37 @@ if (preg_match('/bytes ([0-9]+)\-([0-9]+)\/([0-9]+)/', $_SERVER['HTTP_CONTENT_RA
     fclose($fp);
 
     if ($rangeEnd + 1 === $fileSize) {
-        // @todo 업로드 완료처리
+        if (is_file($filePath) == false || filesize($filePath) != $fileSize) {
+            $results->success = false;
+            $results->status = 'FAIL';
+            return;
+        }
+
+        $file = $me->getRawFile($filePath);
+
+        $me->db()
+            ->update($me->table('drafts'), [
+                'hash' => $file->getHash(),
+                'name' => $file->getName($draft->name, $me->getFileExtension($draft->name, $file->getMime())),
+                'type' => $file->getType(),
+                'mime' => $file->getMime(),
+                'extension' => $me->getFileExtension($draft->name, $file->getMime()),
+                'width' => $file->getWidth(),
+                'height' => $file->getHeight(),
+            ])
+            ->where('draft_id', $draft_id)
+            ->execute();
+
         $results->success = true;
+        $results->id = $draft_id;
         $results->status = 'COMPLETE';
-        $results->uploaded = $file->size;
+        $results->uploaded = $fileSize;
+        $results->attachment = $me->getAttachment($draft_id)->getInfo();
     } else {
         $results->success = true;
+        $results->id = $draft_id;
         $results->status = 'UPLOADING';
-        $results->uploaded = filesize($me->getTempPath($file->path));
+        $results->uploaded = filesize($filePath);
     }
 } else {
     $results->success = false;
