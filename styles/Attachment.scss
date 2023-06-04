@@ -88,6 +88,11 @@ div[data-module='attachment'] {
                 background-position: 50% 50%;
                 background-repeat: no-repeat;
             }
+
+            > div.progress {
+                position: absolute;
+                z-index: 2;
+            }
         }
 
         > label[data-role='name'] {
