@@ -23,8 +23,8 @@ namespace modules {
                                 new Admin.Form.Field.Template({
                                     label: (await this.getText('admin/configs/template')) as string,
                                     name: 'template',
-                                    targetType: this.getType(),
-                                    targetName: this.getName(),
+                                    componentType: this.getType(),
+                                    componentName: this.getName(),
                                 }),
                             ],
                         }),
