@@ -26,7 +26,7 @@
             "label": {
                 "ko": "기본템플릿"
             },
-            "target": {
+            "component": {
                 "type": "module",
                 "name": "attachment"
             },
@@ -48,12 +48,69 @@
         }
     },
     "databases": {
-        "drafts": {
+        "files": {
             "columns": {
                 "hash": {
                     "type": "char",
-                    "length": 50,
-                    "comment": "파일고유값"
+                    "length": 40,
+                    "comment": "파일해시"
+                },
+                "path": {
+                    "type": "varchar",
+                    "length": 255,
+                    "comment": "파일경로"
+                },
+                "type": {
+                    "type": "varchar",
+                    "length": 10,
+                    "comment": "파일종류"
+                },
+                "mime": {
+                    "type": "varchar",
+                    "length": 100,
+                    "comment": "파일MIME"
+                },
+                "extension": {
+                    "type": "varchar",
+                    "length": 4,
+                    "comment": "파일확장자"
+                },
+                "size": {
+                    "type": "bigint",
+                    "comment": "파일크기"
+                },
+                "width": {
+                    "type": "int",
+                    "default": 0,
+                    "comment": "가로크기"
+                },
+                "height": {
+                    "type": "int",
+                    "default": 0,
+                    "comment": "세로크기"
+                },
+                "created_at": {
+                    "type": "int",
+                    "comment": "업로드일자"
+                }
+            },
+            "indexes": {
+                "hash": "primary_key"
+            },
+            "comment": "첨부파일 원본파일"
+        },
+        "drafts": {
+            "columns": {
+                "draft_id": {
+                    "type": "char",
+                    "length": 36,
+                    "comment": "임시파일고유값"
+                },
+                "hash": {
+                    "type": "char",
+                    "length": 40,
+                    "is_null": true,
+                    "comment": "파일해시"
                 },
                 "name": {
                     "type": "varchar",
@@ -65,13 +122,41 @@
                     "length": 255,
                     "comment": "파일경로"
                 },
+                "type": {
+                    "type": "varchar",
+                    "length": 10,
+                    "is_null": true,
+                    "comment": "파일종류"
+                },
+                "mime": {
+                    "type": "varchar",
+                    "length": 100,
+                    "is_null": true,
+                    "comment": "파일MIME"
+                },
+                "extension": {
+                    "type": "varchar",
+                    "length": 4,
+                    "is_null": true,
+                    "comment": "파일확장자"
+                },
                 "size": {
                     "type": "bigint",
                     "comment": "파일크기"
                 },
+                "width": {
+                    "type": "int",
+                    "is_null": true,
+                    "comment": "가로크기"
+                },
+                "height": {
+                    "type": "int",
+                    "is_null": true,
+                    "comment": "세로크기"
+                },
                 "created_at": {
                     "type": "int",
-                    "comment": "생성일자"
+                    "comment": "업로드일자"
                 },
                 "expired_at": {
                     "type": "int",
@@ -79,9 +164,69 @@
                 }
             },
             "indexes": {
-                "hash": "primary_key"
+                "draft_id": "primary_key",
+                "hash": "index"
             },
-            "comment": "첨부파일 업로드 대기목록"
+            "comment": "첨부파일 업로드대기목록"
+        },
+        "attachments": {
+            "columns": {
+                "attachment_id": {
+                    "type": "char",
+                    "length": 36,
+                    "comment": "파일고유값"
+                },
+                "hash": {
+                    "type": "char",
+                    "length": 40,
+                    "comment": "파일해시"
+                },
+                "component_type": {
+                    "type": "varchar",
+                    "length": 10,
+                    "comment": "파일을 첨부한 컴포넌트종류"
+                },
+                "component_name": {
+                    "type": "varchar",
+                    "length": 50,
+                    "comment": "파일을 첨부한 컴포넌트명"
+                },
+                "position_type": {
+                    "type": "varchar",
+                    "length": 50,
+                    "comment": "첨부위치"
+                },
+                "position_id": {
+                    "type": "varchar",
+                    "length": 50,
+                    "comment": "첨부위치고유값"
+                },
+                "name": {
+                    "type": "varchar",
+                    "length": 255,
+                    "comment": "파일명"
+                },
+                "created_at": {
+                    "type": "int",
+                    "comment": "업로드일자"
+                },
+                "download": {
+                    "type": "int",
+                    "default": 0,
+                    "comment": "다운로드수"
+                },
+                "extras": {
+                    "type": "json",
+                    "is_null": true,
+                    "comment": "추가정보"
+                }
+            },
+            "indexes": {
+                "attachment_id": "primary_key",
+                "hash": "index",
+                "component_type,component_name,position_type,position_id": "index"
+            },
+            "comment": "첨부파일 위치"
         }
     }
 }
