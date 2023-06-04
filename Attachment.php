@@ -14,9 +14,14 @@ namespace modules\attachment;
 class Attachment extends \Module
 {
     /**
-     * @var File[] $_files 파일정보를 보관한다.
+     * @var \modules\attachment\dto\File[] $_files 파일정보를 보관한다.
      */
     private static array $_files = [];
+
+    /**
+     * @var \modules\attachment\dto\Draft[] $_drafts 임시파일정보를 보관한다.
+     */
+    private static array $_attachments = [];
 
     /**
      * 모듈을 설정을 초기화한다.
@@ -26,29 +31,38 @@ class Attachment extends \Module
         /**
          * 모듈 라우터를 초기화한다.
          */
-        \Router::add('/files/{type}/{file_id}/{name}', '#', 'blob', [$this, 'doRoute']);
+        \Router::add('/(files|drafts|attachments)/{type}/{file_id}/{name}', '#', 'blob', [$this, 'doRoute']);
     }
 
     /**
-     * 첨부파일 임시저장경로를 가져온다.
+     * 첨부파일 임시저장폴더를 가져온다.
      *
-     * @param string $name 임시저장파일명 (NULL 인 경우 임시저장폴더경로만 가져온다.)
-     * @return string $path 경로
+     * @return string $dir 폴더
      */
-    public function getTempPath(?string $name = null): string
+    public function getDraftDir(): string
     {
-        $path = \Configs::attachment() . '/temp';
-        if (is_dir($path) === false) {
-            if (mkdir($path) === false) {
-                \ErrorHandler::print($this->error('NOT_WRITABLE'));
-            }
+        $dir = 'drafts';
+        if (\File::createDirectory(\Configs::attachment() . '/' . $dir) === false) {
+            \ErrorHandler::print($this->error('NOT_WRITABLE'));
         }
 
-        if ($name !== null) {
-            $path .= '/' . $name;
+        return $dir;
+    }
+
+    /**
+     * 파일해시에 따른 파일이 저장된 폴더를 가져온다.
+     *
+     * @param string $hash 파일해시
+     * @return string $dir 폴더
+     */
+    public function getFileDir(string $hash): string
+    {
+        $dir = 'files/' . substr($hash, 0, 1) . '/' . substr($hash, 1, 1);
+        if (\File::createDirectory(\Configs::attachment() . '/' . $dir) === false) {
+            \ErrorHandler::print($this->error('NOT_WRITABLE'));
         }
 
-        return $path;
+        return $dir;
     }
 
     /**
@@ -65,85 +79,70 @@ class Attachment extends \Module
     /**
      * 첨부파일 정보를 가져온다.
      *
-     * @param int $file_id 첨부파일 고유값
-     * @return dto\File $file
+     * @param string $hash 파일해시
+     * @return ?\modules\attachment\dto\File $file
      */
-    public function getFile(int $file_id): ?dto\File
+    public function getFile(string $hash): ?\modules\attachment\dto\File
     {
-        if (isset(self::$_files[$file_id]) == true) {
-            return self::$_files[$file_id];
+        if (isset(self::$_files[$hash]) == false) {
+            $file = $this->db()
+                ->select()
+                ->from($this->table('files'))
+                ->where('hash', $hash)
+                ->getOne();
+
+            if ($file === null) {
+                return null;
+            }
+
+            self::$_files[$hash] = new \modules\attachment\dto\File($file);
         }
 
-        $file = $this->db()
-            ->select()
-            ->from($this->table('files'))
-            ->where('file_id', $file_id)
-            ->getOne();
-        self::$_files[$file_id] = $file !== null ? new dto\File($file) : null;
-
-        return self::$_files[$file_id];
+        return self::$_files[$hash];
     }
 
     /**
-     * 파일정보를 실제파일 데이터로 갱신한다.
+     * 첨부파일 정보를 가져온다.
      *
-     * @param int $file_id 첨부파일 고유값
-     * @return bool $success
+     * @param string $attachment_id 첨부파일고유값
+     * @return ?\modules\attachment\dto\Attachment $attachment
      */
-    public function updateFile(int $file_id): bool
+    public function getAttachment(string $attachment_id): ?\modules\attachment\dto\Attachment
     {
-        $file = $this->db()
-            ->select()
-            ->from($this->table('files'))
-            ->where('file_id', $file_id)
-            ->getOne();
+        if (isset(self::$_attachments[$attachment_id]) == false) {
+            /**
+             * 첨부파일 목록 또는 임시파일 목록에서 정보를 가져온다.
+             */
+            $attachment =
+                $this->db()
+                    ->select()
+                    ->from($this->table('attachments'), 'a')
+                    ->join($this->table('files'), 'f', 'a.hash=f.hash')
+                    ->where('a.attachment_id', $attachment_id)
+                    ->getOne() ??
+                $this->db()
+                    ->select()
+                    ->from($this->table('drafts'))
+                    ->where('draft_id', $attachment_id)
+                    ->getOne();
 
-        if ($file == null || is_file(\Configs::attachment() . '/' . $file->path) == false) {
-            return false;
-        }
-
-        $path = \Configs::attachment() . '/' . $file->path;
-
-        $updated = [
-            'mime' => $this->getFileMime($path),
-            'type' => $this->getFileType($this->getFileMime($path)),
-            'size' => filesize($path),
-            'width' => $this->getImageSize($path)[0],
-            'height' => $this->getImageSize($path)[1],
-        ];
-
-        $hash = md5_file(\Configs::attachment() . '/' . $file->path);
-        if (preg_match('/^' . $hash . '\./', basename($file->path)) == false) {
-            $oname = basename($file->path);
-            $name = explode('.', $oname);
-            $name[0] = $hash;
-            $name = implode('.', $name);
-            $updated['path'] = str_replace($oname, $name, $file->path);
-        }
-
-        $result = $this->db()
-            ->update($this->table('files'), $updated)
-            ->where('file_id', $file_id)
-            ->execute();
-
-        if ($result->success == true) {
-            if (isset($updated['path']) == true) {
-                rename(\Configs::attachment() . '/' . $file->path, \Configs::attachment() . '/' . $updated['path']);
+            if ($attachment === null) {
+                return null;
             }
 
-            return true;
-        } else {
-            return false;
+            self::$_attachments[$attachment_id] = new \modules\attachment\dto\Attachment($attachment);
         }
+
+        return self::$_attachments[$attachment_id];
     }
 
     /**
      * 첨부파일에 의해 첨부된 파일이 아닌, 실제 파일경로를 이용하여 파일 정보를 가져온다.
      *
      * @param string $path 첨부파일 고유값
-     * @return File $file
+     * @return \modules\attachment\dto\File $file
      */
-    public function getRawFile(string $path): ?dto\File
+    public function getRawFile(string $path): ?\modules\attachment\dto\File
     {
         if (isset(self::$_files[$path]) == true) {
             return self::$_files[$path];
@@ -153,32 +152,14 @@ class Attachment extends \Module
             return null;
         }
 
-        $file = new \stdClass();
-        $file->file_id = 0;
-        $file->target = 'UNKNOWN';
-        $file->path = $path;
-        $file->name = basename($path);
-        $file->mime = $this->getFileMime($path);
-        $file->type = $this->getFileType($file->mime);
-        $file->size = filesize($path);
-
-        $imagesize = $this->getImageSize($path);
-        $file->width = $imagesize[0];
-        $file->height = $imagesize[1];
-        $file->uploaded_date = filemtime($path);
-        $file->download = 0;
-        $file->status = 'UNREGISTED';
-
-        self::$_files[$path] = new dto\File($file);
-
-        return self::$_files[$path];
+        return new dto\File($path);
     }
 
     /**
      * 이미지파일의 너비 및 높이를 가져온다.
      *
      * @param string $path 첨부파일 고유값
-     * @return int[] [너비, 높이]
+     * @return int[] [$width, $height]
      */
     public function getImageSize(string $path): array
     {
@@ -231,79 +212,337 @@ class Attachment extends \Module
      * @param string $mime 파일 MIME
      * @return string $type 파일종류
      */
-    function getFileType(string $mime): string
+    public function getFileType(string $mime): string
     {
-        if (preg_match('/^image\/(.*?)$/', $mime, $match) == true) {
-            switch ($match[1]) {
-                case 'svg+xml':
-                    return 'svg';
+        if (preg_match('/^(.*?)\/(.*?)$/', $mime, $types) == true) {
+            $type = $types[1];
+            $detail = $types[2];
 
-                case 'jpg':
-                case 'png':
-                case 'gif':
+            switch ($type) {
+                case 'image':
+                    if (preg_match('/(icon|svg)/', $detail, $match) == true) {
+                        return $match[1];
+                    }
+
                     return 'image';
 
-                case 'x-icon':
-                case 'vnd.microsoft.icon':
-                    return 'icon';
+                case 'application':
+                    if (
+                        preg_match('/(pdf|officedocument|opendocument|word|powerpoint|excel|xml|rtf)/', $detail) == true
+                    ) {
+                        return 'document';
+                    }
+
+                    if (preg_match('/(zip|rar|tar|compressed)/', $detail) == true) {
+                        return 'archive';
+                    }
+
+                    if (preg_match('/(json)/', $detail) == true) {
+                        return 'text';
+                    }
+
+                    return 'file';
+
+                case 'video':
+                case 'audio':
+                case 'text':
+                    return $type;
+
+                default:
+                    return 'file';
             }
+        } else {
+            return 'file';
         }
-
-        if (preg_match('/^application\/(.*?)(pdf|officedocument|CDFV2)/', $mime) == true) {
-            return 'document';
-        }
-
-        if (preg_match('/text\//', $mime) == true) {
-            return 'text';
-        }
-
-        if (preg_match('/^(video|audio)\//', $mime, $match) == true) {
-            return $match[1];
-        }
-
-        if (preg_match('/application\/(zip|gzip|x\-rar\-compressed|x\-gzip)/', $mime) == true) {
-            return 'archive';
-        }
-
-        return 'file';
     }
 
     /**
      * 파일의 확장자만 가져온다.
      *
-     * @param string $filename 파일명
+     * @param string $name 파일명
+     * @param string $mime 파일 MIME
      * @return string $extension 파일 확장자
      */
-    function getFileExtension(string $filename): string
+    public function getFileExtension(string $name, string $mime = null): string
     {
-        return strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        $extension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+        $replacement = [
+            'jpeg' => 'jpg',
+            'htm' => 'html',
+        ];
+        // @todo mime 체크
+
+        return isset($replacement[$extension]) == true ? $replacement[$extension] : $extension;
+    }
+
+    /**
+     * 파일을 출판한다.
+     *
+     * @param ?string $attachment_id 파일고유값
+     * @param \Component|array $component 첨부한 컴포넌트객체 또는 [컴포넌트타입, 컴포넌트명]
+     * @param string $position_type 업로드위치
+     * @param string|int $position_id 업로드고유값
+     * @param bool $replacement 대치여부 (기본값 false)
+     * @return bool $success
+     */
+    public function publishFile(
+        ?string $attachment_id,
+        \Component|array $component,
+        string $position_type,
+        string|int $position_id,
+        bool $replacement = false
+    ): bool {
+        if ($component instanceof \Component) {
+            $component = [$component->getType(), $component->getName()];
+        }
+        if (
+            is_array($component) == false ||
+            count($component) != 2 ||
+            is_string($component[0]) == false ||
+            is_string($component[1]) == false
+        ) {
+            return false;
+        }
+
+        if ($attachment_id === null) {
+            if ($replacement == true) {
+                $deleteFiles = $this->db()
+                    ->select(['attachment_id'])
+                    ->from($this->table('attachments'))
+                    ->where('component_type', $component[0])
+                    ->where('component_name', $component[1])
+                    ->where('position_type', $position_type)
+                    ->where('position_id', $position_id)
+                    ->get('attachment_id');
+                $this->deleteFiles($deleteFiles);
+            }
+
+            return true;
+        }
+
+        $attachment = $this->getAttachment($attachment_id);
+        if ($attachment === null) {
+            return false;
+        }
+
+        if ($attachment->isPublished() == false) {
+            $hash = $attachment->getHash();
+            $file = $this->getFile($hash);
+            if ($file === null) {
+                if (is_file($attachment->getPath()) == false) {
+                    return false;
+                }
+
+                $path = $this->getFileDir($hash) . '/' . $hash . '.' . \Format::random(4);
+                $moved = rename($attachment->getPath(), \Configs::attachment() . '/' . $path);
+                if ($moved == false) {
+                    return false;
+                }
+
+                $this->db()
+                    ->insert($this->table('files'), [
+                        'hash' => $hash,
+                        'path' => $path,
+                        'type' => $attachment->getType(),
+                        'mime' => $attachment->getMime(),
+                        'extension' => $attachment->getExtension(),
+                        'size' => $attachment->getSize(),
+                        'width' => $attachment->getWidth(),
+                        'height' => $attachment->getHeight(),
+                        'created_at' => time(),
+                    ])
+                    ->execute();
+            } elseif ($file->getPath() != $attachment->getPath()) {
+                unlink($attachment->getPath());
+            }
+
+            $this->db()
+                ->insert($this->table('attachments'), [
+                    'attachment_id' => $attachment_id,
+                    'hash' => $hash,
+                    'component_type' => $component[0],
+                    'component_name' => $component[1],
+                    'position_type' => $position_type,
+                    'position_id' => $position_id,
+                    'name' => $attachment->getName(),
+                    'created_at' => time(),
+                ])
+                ->execute();
+
+            $this->db()
+                ->delete($this->table('drafts'))
+                ->where('draft_id', $attachment_id)
+                ->execute();
+        } else {
+            $this->db()
+                ->update($this->table('attachments'), [
+                    'component_type' => $component[0],
+                    'component_name' => $component[1],
+                    'position_type' => $position_type,
+                    'position_id' => $position_id,
+                ])
+                ->where('attachment_id', $attachment_id)
+                ->execute();
+        }
+
+        if ($replacement == true) {
+            $deleteFiles = $this->db()
+                ->select(['attachment_id'])
+                ->from($this->table('attachments'))
+                ->where('component_type', $component[0])
+                ->where('component_name', $component[1])
+                ->where('position_type', $position_type)
+                ->where('position_id', $position_id)
+                ->where('attachment_id', $attachment_id, '!=')
+                ->get('attachment_id');
+            $this->deleteFiles($deleteFiles);
+        }
+
+        return true;
+    }
+
+    /**
+     * 다중파일을 출판한다.
+     *
+     * @param string[] $attachment_ids 파일고유값
+     * @param \Component|array $component 첨부한 컴포넌트객체 또는 [컴포넌트타입, 컴포넌트명]
+     * @param string $position_type 업로드위치
+     * @param string|int $position_id 업로드고유값
+     * @param bool $replacement 대치여부 (기본값 true)
+     * @return bool $success
+     */
+    public function publishFiles(
+        string|array $attachment_ids,
+        \Component|array $component,
+        string $position_type,
+        string|int $position_id,
+        bool $replacement = true
+    ): bool {
+        $success = true;
+        if ($component instanceof \Component) {
+            $component = [$component->getType(), $component->getName()];
+        }
+        if (
+            is_array($component) == false ||
+            count($component) != 2 ||
+            is_string($component[0]) == false ||
+            is_string($component[1]) == false
+        ) {
+            return false;
+        }
+
+        foreach ($attachment_ids as $attachment_id) {
+            $success = $success && $this->publishFile($attachment_id, $component, $position_type, $position_id);
+        }
+
+        if ($success === true && $replacement === true) {
+            $deleteFiles = $this->db()
+                ->select(['attachment_id'])
+                ->from($this->table('attachments'))
+                ->where('component_type', $component[0])
+                ->where('component_name', $component[1])
+                ->where('position_type', $position_type)
+                ->where('position_id', $position_id);
+            if (count($attachment_ids) > 0) {
+                $deleteFiles->where('attachment_id', $attachment_ids, 'NOT IN');
+            }
+            $deleteFiles = $deleteFiles->get('attachment_id');
+            $this->deleteFiles($deleteFiles);
+        }
+
+        return $success;
+    }
+
+    /**
+     * 첨부파일을 삭제한다.
+     *
+     * @param string $attachment_id 삭제할 첨부파일고유값
+     * @return bool $success
+     */
+    public function deleteFile(string $attachment_id): bool
+    {
+        $attachment = $this->getAttachment($attachment_id);
+        $this->db()
+            ->delete($this->table('attachments'))
+            ->where('attachment_id', $attachment_id)
+            ->execute();
+
+        if ($attachment->isPublished() == false) {
+            $this->db()
+                ->delete($this->table('attachments'))
+                ->where('draft_id', $attachment_id)
+                ->execute();
+        }
+
+        if (
+            $this->db()
+                ->select()
+                ->from($this->table('attachments'))
+                ->where('hash', $attachment->getHash())
+                ->has() == false
+        ) {
+            $this->db()
+                ->delete($this->table('files'))
+                ->where('hash', $attachment->getHash())
+                ->execute();
+
+            unlink($attachment->getPath());
+            if ($attachment->isResizable() == true) {
+                if (is_file($attachment->getPath() . '.view') == true) {
+                    unlink($attachment->getPath() . '.view');
+                }
+
+                if (is_file($attachment->getPath() . '.thumbnail') == true) {
+                    unlink($attachment->getPath() . '.thumbnail');
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * 첨부파일을 삭제한다.
+     *
+     * @param string[] $attachment_ids 삭제할 첨부파일고유값
+     * @return bool $success
+     */
+    public function deleteFiles(array $attachment_ids = []): bool
+    {
+        $success = true;
+        foreach ($attachment_ids as $attachment_id) {
+            $success = $success && $this->deleteFile($attachment_id);
+        }
+
+        return $success;
     }
 
     /**
      * 파일 라우팅을 처리한다.
      *
      * @param Route $route 현재경로
+     * @param string $request 요청파일경로 (drafts, attachments, files)
      * @param string $type 파일접근종류 (origin, view, thumbnail, download)
      * @param int $file_id 파일고유값
      * @param string $name 파일명
      */
-    public function doRoute(\Route $route, string $type, int $file_id, string $name): void
+    public function doRoute(\Route $route, string $request, string $type, string $attachment_id, string $name): void
     {
-        $file = $this->getFile($file_id);
-        if ($file === null || is_file($file->getPath()) == false) {
+        $attachment = $this->getAttachment($attachment_id);
+        if ($attachment === null || is_file($attachment->getPath()) == false) {
             \ErrorHandler::print($this->error('NOT_FOUND_FILE', $route->getUrl()));
         }
 
         session_write_close();
 
-        if ($file->getType() == 'image') {
-            $path = $file->getPath($type);
+        if ($attachment->getType() == 'image') {
+            $path = $attachment->getPath();
         } else {
-            $path = $file->getPath();
+            $path = $attachment->getPath();
         }
 
         if ($type != 'download') {
-            header('Content-Type: ' . $file->getMime());
+            header('Content-Type: ' . $attachment->getMime());
             header('Content-Length: ' . filesize($path));
             header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 3600) . ' GMT');
             header('Cache-Control: max-age=3600');
@@ -312,7 +551,7 @@ class Attachment extends \Module
             readfile($path);
             exit();
         } else {
-            header('Content-Type: ' . $file->getMime());
+            header('Content-Type: ' . $attachment->getMime());
             header('Content-Length: ' . filesize($path));
             header('Expires: 0');
             header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
