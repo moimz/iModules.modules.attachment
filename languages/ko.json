@@ -1,4 +1,8 @@
 {
+    "buttons": {
+        "download": "다운로드",
+        "delete": "삭제"
+    },
     "errors": {
         "NOT_FOUND_FILE": "파일을 찾을 수 없습니다."
     },
