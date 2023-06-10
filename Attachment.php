@@ -8,7 +8,7 @@
  * @file /modules/attachment/Attachment.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2023. 4. 10.
+ * @modified 2023. 6. 10.
  */
 namespace modules\attachment;
 class Attachment extends \Module
@@ -462,28 +462,43 @@ class Attachment extends \Module
     public function deleteFile(string $attachment_id): bool
     {
         $attachment = $this->getAttachment($attachment_id);
-        $this->db()
-            ->delete($this->table('attachments'))
-            ->where('attachment_id', $attachment_id)
-            ->execute();
-
-        if ($attachment->isPublished() == false) {
-            $this->db()
-                ->delete($this->table('attachments'))
-                ->where('draft_id', $attachment_id)
-                ->execute();
+        if ($attachment === null) {
+            return false;
         }
 
-        if (
+        if ($attachment->isPublished() == true) {
             $this->db()
-                ->select()
-                ->from($this->table('attachments'))
-                ->where('hash', $attachment->getHash())
-                ->has() == false
-        ) {
+                ->delete($this->table('attachments'))
+                ->where('attachment_id', $attachment_id)
+                ->execute();
+
+            if (
+                $this->db()
+                    ->select()
+                    ->from($this->table('attachments'))
+                    ->where('hash', $attachment->getHash())
+                    ->has() == false
+            ) {
+                $this->db()
+                    ->delete($this->table('files'))
+                    ->where('hash', $attachment->getHash())
+                    ->execute();
+
+                unlink($attachment->getPath());
+                if ($attachment->isResizable() == true) {
+                    if (is_file($attachment->getPath() . '.view') == true) {
+                        unlink($attachment->getPath() . '.view');
+                    }
+
+                    if (is_file($attachment->getPath() . '.thumbnail') == true) {
+                        unlink($attachment->getPath() . '.thumbnail');
+                    }
+                }
+            }
+        } else {
             $this->db()
-                ->delete($this->table('files'))
-                ->where('hash', $attachment->getHash())
+                ->delete($this->table('drafts'))
+                ->where('draft_id', $attachment_id)
                 ->execute();
 
             unlink($attachment->getPath());
