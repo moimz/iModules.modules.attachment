@@ -6,12 +6,12 @@
  * @file /modules/attachment/scripts/Attachment.ts
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2023. 6. 1.
+ * @modified 2023. 6. 10.
  */
 namespace modules {
     export namespace attachment {
         export class Attachment extends Module {
-            static Uploaders: WeakMap<Dom, modules.attachment.Uploader> = new WeakMap();
+            static Uploaders: WeakMap<HTMLElement, modules.attachment.Uploader> = new WeakMap();
 
             /**
              * 업로더를 설정한다.
@@ -21,11 +21,11 @@ namespace modules {
              * @return {modules.attachment.Uploader} uploader - 업로더 객체
              */
             set($dom: Dom, properties: modules.attachment.Uploader.Properties): modules.attachment.Uploader {
-                if (modules.attachment.Attachment.Uploaders.has($dom) == true) {
-                    return modules.attachment.Attachment.Uploaders.get($dom);
+                if (modules.attachment.Attachment.Uploaders.has($dom.getEl()) == true) {
+                    return modules.attachment.Attachment.Uploaders.get($dom.getEl());
                 } else {
                     const uploader = new modules.attachment.Uploader($dom, properties);
-                    modules.attachment.Attachment.Uploaders.set($dom, uploader);
+                    modules.attachment.Attachment.Uploaders.set($dom.getEl(), uploader);
                     return uploader;
                 }
             }
