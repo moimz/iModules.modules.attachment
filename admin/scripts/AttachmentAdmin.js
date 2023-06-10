@@ -6,7 +6,7 @@
  * @file /modules/attachment/admin/scripts/AttachmentAdmin.ts
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2023. 3. 28.
+ * @modified 2023. 6. 10.
  */
 var modules;
 (function (modules) {
@@ -15,15 +15,17 @@ var modules;
         class AttachmentAdmin extends Admin.Interface {
             /**
              * 모듈 환경설정 폼을 가져온다.
+             *
+             * @return {Promise<Admin.Form.Panel>} configs
              */
             async getConfigsForm() {
                 return new Admin.Form.Panel({
                     items: [
                         new Admin.Form.FieldSet({
-                            title: (await this.getText('admin/configs/default')),
+                            title: (await this.getText('admin.configs.default')),
                             items: [
                                 new Admin.Form.Field.Template({
-                                    label: (await this.getText('admin/configs/template')),
+                                    label: (await this.getText('admin.configs.template')),
                                     name: 'template',
                                     componentType: this.getType(),
                                     componentName: this.getName(),
@@ -31,10 +33,10 @@ var modules;
                             ],
                         }),
                         new Admin.Form.FieldSet({
-                            title: (await this.getText('admin/configs/limits')),
+                            title: (await this.getText('admin.configs.limits')),
                             items: [
                                 new Admin.Form.Field.Container({
-                                    label: (await this.getText('admin/configs/max_file_size')),
+                                    label: (await this.getText('admin.configs.max_file_size')),
                                     items: [
                                         new Admin.Form.Field.Number({
                                             name: 'max_file_size',
@@ -44,10 +46,10 @@ var modules;
                                             value: 'MB',
                                         }),
                                     ],
-                                    helpText: (await this.getText('admin/configs/max_file_size_help')),
+                                    helpText: (await this.getText('admin.configs.max_file_size_help')),
                                 }),
                                 new Admin.Form.Field.Container({
-                                    label: (await this.getText('admin/configs/max_upload_size')),
+                                    label: (await this.getText('admin.configs.max_upload_size')),
                                     items: [
                                         new Admin.Form.Field.Number({
                                             name: 'max_upload_size',
@@ -57,7 +59,7 @@ var modules;
                                             value: 'MB',
                                         }),
                                     ],
-                                    helpText: (await this.getText('admin/configs/max_upload_size_help')),
+                                    helpText: (await this.getText('admin.configs.max_upload_size_help')),
                                 }),
                             ],
                         }),
