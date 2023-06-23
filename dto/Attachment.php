@@ -275,6 +275,17 @@ class Attachment
     }
 
     /**
+     * 도메인을 포함한 파일 URL 을 가져온다.
+     *
+     * @param ?string $type URL종류 (thumbnail : 이미지썸네일, view : 이미지보기, origin : 원본, download : 다운로드, NULL인 경우 파일 종류에 따라 자동으로 선택)
+     * @return string $url
+     */
+    public function getFullUrl(?string $type = null): string
+    {
+        return \Domains::get()->getUrl() . $this->getUrl($type);
+    }
+
+    /**
      * 파일정보를 가져온다.
      *
      * @return object $info
