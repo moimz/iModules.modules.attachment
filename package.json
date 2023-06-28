@@ -97,7 +97,7 @@
             "indexes": {
                 "hash": "primary_key"
             },
-            "comment": "첨부파일 원본파일"
+            "comment": "아이모듈 첨부파일 원본파일"
         },
         "drafts": {
             "columns": {
@@ -167,7 +167,7 @@
                 "draft_id": "primary_key",
                 "hash": "index"
             },
-            "comment": "첨부파일 업로드대기목록"
+            "comment": "아이모듈 첨부파일 업로드대기목록"
         },
         "attachments": {
             "columns": {
@@ -226,7 +226,7 @@
                 "hash": "index",
                 "component_type,component_name,position_type,position_id": "index"
             },
-            "comment": "첨부파일 위치"
+            "comment": "아이모듈 첨부파일 위치"
         }
     }
 }
