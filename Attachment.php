@@ -8,7 +8,7 @@
  * @file /modules/attachment/Attachment.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2023. 6. 10.
+ * @modified 2023. 6. 27.
  */
 namespace modules\attachment;
 class Attachment extends \Module
@@ -279,7 +279,7 @@ class Attachment extends \Module
      * 파일을 출판한다.
      *
      * @param ?string $attachment_id 파일고유값
-     * @param \Component|array $component 첨부한 컴포넌트객체 또는 [컴포넌트타입, 컴포넌트명]
+     * @param \Component $component 첨부한 컴포넌트객체 또는 [컴포넌트타입, 컴포넌트명]
      * @param string $position_type 업로드위치
      * @param string|int $position_id 업로드고유값
      * @param bool $replacement 대치여부 (기본값 false)
@@ -287,30 +287,18 @@ class Attachment extends \Module
      */
     public function publishFile(
         ?string $attachment_id,
-        \Component|array $component,
+        \Component $component,
         string $position_type,
         string|int $position_id,
         bool $replacement = false
     ): bool {
-        if ($component instanceof \Component) {
-            $component = [$component->getType(), $component->getName()];
-        }
-        if (
-            is_array($component) == false ||
-            count($component) != 2 ||
-            is_string($component[0]) == false ||
-            is_string($component[1]) == false
-        ) {
-            return false;
-        }
-
         if ($attachment_id === null) {
             if ($replacement == true) {
                 $deleteFiles = $this->db()
                     ->select(['attachment_id'])
                     ->from($this->table('attachments'))
-                    ->where('component_type', $component[0])
-                    ->where('component_name', $component[1])
+                    ->where('component_type', $component->getType())
+                    ->where('component_name', $component->getName())
                     ->where('position_type', $position_type)
                     ->where('position_id', $position_id)
                     ->get('attachment_id');
@@ -360,8 +348,8 @@ class Attachment extends \Module
                 ->insert($this->table('attachments'), [
                     'attachment_id' => $attachment_id,
                     'hash' => $hash,
-                    'component_type' => $component[0],
-                    'component_name' => $component[1],
+                    'component_type' => $component->getType(),
+                    'component_name' => $component->getName(),
                     'position_type' => $position_type,
                     'position_id' => $position_id,
                     'name' => $attachment->getName(),
@@ -376,8 +364,8 @@ class Attachment extends \Module
         } else {
             $this->db()
                 ->update($this->table('attachments'), [
-                    'component_type' => $component[0],
-                    'component_name' => $component[1],
+                    'component_type' => $component->getType(),
+                    'component_name' => $component->getName(),
                     'position_type' => $position_type,
                     'position_id' => $position_id,
                 ])
@@ -389,8 +377,8 @@ class Attachment extends \Module
             $deleteFiles = $this->db()
                 ->select(['attachment_id'])
                 ->from($this->table('attachments'))
-                ->where('component_type', $component[0])
-                ->where('component_name', $component[1])
+                ->where('component_type', $component->getType())
+                ->where('component_name', $component->getName())
                 ->where('position_type', $position_type)
                 ->where('position_id', $position_id)
                 ->where('attachment_id', $attachment_id, '!=')
@@ -405,7 +393,7 @@ class Attachment extends \Module
      * 다중파일을 출판한다.
      *
      * @param string[] $attachment_ids 파일고유값
-     * @param \Component|array $component 첨부한 컴포넌트객체 또는 [컴포넌트타입, 컴포넌트명]
+     * @param \Component $component 첨부한 컴포넌트객체 또는 [컴포넌트타입, 컴포넌트명]
      * @param string $position_type 업로드위치
      * @param string|int $position_id 업로드고유값
      * @param bool $replacement 대치여부 (기본값 true)
@@ -413,23 +401,12 @@ class Attachment extends \Module
      */
     public function publishFiles(
         string|array $attachment_ids,
-        \Component|array $component,
+        \Component $component,
         string $position_type,
         string|int $position_id,
         bool $replacement = true
     ): bool {
         $success = true;
-        if ($component instanceof \Component) {
-            $component = [$component->getType(), $component->getName()];
-        }
-        if (
-            is_array($component) == false ||
-            count($component) != 2 ||
-            is_string($component[0]) == false ||
-            is_string($component[1]) == false
-        ) {
-            return false;
-        }
 
         foreach ($attachment_ids as $attachment_id) {
             $success = $success && $this->publishFile($attachment_id, $component, $position_type, $position_id);
@@ -439,8 +416,8 @@ class Attachment extends \Module
             $deleteFiles = $this->db()
                 ->select(['attachment_id'])
                 ->from($this->table('attachments'))
-                ->where('component_type', $component[0])
-                ->where('component_name', $component[1])
+                ->where('component_type', $component->getType())
+                ->where('component_name', $component->getName())
                 ->where('position_type', $position_type)
                 ->where('position_id', $position_id);
             if (count($attachment_ids) > 0) {
