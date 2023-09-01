@@ -510,6 +510,110 @@ class Attachment extends \Module
     }
 
     /**
+     * 썸네일을 생성한다.
+     *
+     * @param string $imgPath 썸네일을 생성할 대상 이미지 경로
+     * @param string $thumbPath 썸네일이 저장될 경로
+     * @param int $size 썸네일크기 (X축/Y축 중 더 큰축에 대한 리사이징 크기)
+     * @param bool $is_delete 원본 이미지파일을 삭제할 지 여부
+     * @param string $forceType 원본 이미지의 포맷과 무관하게 썸네일의 이미지포맷(JPG, GIF, PNG)를 지정할 경우 해당 포맷명
+     * @return bool $success
+     */
+    public function createThumbnail(
+        string $imgPath,
+        string $thumbPath,
+        int $size,
+        bool $delete = false,
+        ?string $forceType = null
+    ): bool {
+        $result = true;
+        $imginfo = @getImageSize($imgPath);
+        $extName = $imginfo[2];
+
+        switch ($extName) {
+            case '1':
+                ($src = @imageCreateFromGIF($imgPath)) or ($result = false);
+                $type = 'gif';
+                break;
+            case '2':
+                ($src = @imageCreateFromJPEG($imgPath)) or ($result = false);
+                $type = 'jpg';
+                break;
+            case '3':
+                ($src = @imageCreateFromPNG($imgPath)) or ($result = false);
+                $type = 'png';
+                break;
+            case '18':
+                ($src = @imageCreateFromWebP($imgPath)) or ($result = false);
+                $type = 'webp';
+                break;
+
+            default:
+                $result = false;
+        }
+
+        if ($result == true) {
+            $toType = $forceType ?? $type;
+
+            if ($imginfo[0] < $imginfo[1]) {
+                $height = $size;
+                $width = ceil(($height * $imginfo[1]) / $imginfo[0]);
+            } else {
+                $width = $size;
+                $height = ceil(($width * $imginfo[1]) / $imginfo[0]);
+            }
+
+            if (false && $toType == $type && ($imginfo[0] <= $width || $imginfo[1] <= $height)) {
+                @copy($imgPath, $thumbPath);
+                if ($delete == true) {
+                    @unlink($imgPath);
+                }
+                return true;
+            }
+
+            $thumb = @imageCreateTrueColor($width, $height);
+
+            switch ($toType) {
+                case 'png':
+                case 'webp':
+                    $background = imageColorAllocate($src, 0, 0, 0);
+                    imageColorTransparent($thumb, $background);
+                    imageAlphaBlending($thumb, false);
+                    imageSaveAlpha($thumb, true);
+                    break;
+
+                case 'gif':
+                    $background = imageColorAllocate($src, 0, 0, 0);
+                    imageColorTransparent($thumb, $background);
+                    break;
+            }
+
+            @imageCopyResampled($thumb, $src, 0, 0, 0, 0, $width, $height, @imageSX($src), @imageSY($src)) or
+                ($result = false);
+
+            if ($toType == 'jpg') {
+                @imageJPEG($thumb, $thumbPath, 80) or ($result = false);
+            } elseif ($toType == 'gif') {
+                @imageGIF($thumb, $thumbPath) or ($result = false);
+            } elseif ($toType == 'png') {
+                @imagePNG($thumb, $thumbPath) or ($result = false);
+            } elseif ($toType == 'webp') {
+                @imageWebP($thumb, $thumbPath, 80) or ($result = false);
+            } else {
+                $result = false;
+            }
+            @imageDestroy($src);
+            @imageDestroy($thumb);
+            @chmod($thumbPath, 0755);
+        }
+
+        if ($delete == true) {
+            @unlink($imgPath);
+        }
+
+        return $result;
+    }
+    /**
      * 파일 라우팅을 처리한다.
      *
      * @param Route $route 현재경로
