@@ -130,7 +130,7 @@ class S3
             'Host' => $this->_bucket . '.s3.amazonaws.com',
             'Content-Type' => mime_content_type($filePath),
             'x-amz-content-sha256' => $hashed_payload,
-            'x-amz-date' => date('r', $time),
+            'x-amz-date' => gmdate('r', $time),
         ];
         ksort($headers);
         $signed_headers_string = strtolower(implode(';', array_keys($headers)));
@@ -146,11 +146,11 @@ class S3
         $canonical_request .= $hashed_payload;
 
         $string_to_sign = "AWS4-HMAC-SHA256\n";
-        $string_to_sign .= date('r', $time) . "\n";
-        $string_to_sign .= date('Ymd', $time) . '/' . $this->_region . "/s3/aws4_request\n";
+        $string_to_sign .= gmdate('r', $time) . "\n";
+        $string_to_sign .= gmdate('Ymd', $time) . '/' . $this->_region . "/s3/aws4_request\n";
         $string_to_sign .= hash('sha256', $canonical_request);
 
-        $signature_date = hash_hmac('sha256', date('Ymd', $time), 'AWS4' . $this->_secret, true);
+        $signature_date = hash_hmac('sha256', gmdate('Ymd', $time), 'AWS4' . $this->_secret, true);
         $signature_region = hash_hmac('sha256', $this->_region, $signature_date, true);
         $signature_service = hash_hmac('sha256', 's3', $signature_region, true);
         $signature_request = hash_hmac('sha256', 'aws4_request', $signature_service, true);
@@ -160,7 +160,7 @@ class S3
             'AWS4-HMAC-SHA256 Credential=' .
             $this->_key .
             '/' .
-            date('Ymd', $time) .
+            gmdate('Ymd', $time) .
             '/' .
             $this->_region .
             '/s3/aws4_request,';
@@ -206,7 +206,7 @@ class S3
         $headers = [
             'Host' => $this->_bucket . '.s3.amazonaws.com',
             'x-amz-content-sha256' => $hashed_payload,
-            'x-amz-date' => date('r', $time),
+            'x-amz-date' => gmdate('r', $time),
         ];
         ksort($headers);
         $signed_headers_string = strtolower(implode(';', array_keys($headers)));
@@ -222,11 +222,11 @@ class S3
         $canonical_request .= $hashed_payload;
 
         $string_to_sign = "AWS4-HMAC-SHA256\n";
-        $string_to_sign .= date('r', $time) . "\n";
-        $string_to_sign .= date('Ymd', $time) . '/' . $this->_region . "/s3/aws4_request\n";
+        $string_to_sign .= gmdate('r', $time) . "\n";
+        $string_to_sign .= gmdate('Ymd', $time) . '/' . $this->_region . "/s3/aws4_request\n";
         $string_to_sign .= hash('sha256', $canonical_request);
 
-        $signature_date = hash_hmac('sha256', date('Ymd', $time), 'AWS4' . $this->_secret, true);
+        $signature_date = hash_hmac('sha256', gmdate('Ymd', $time), 'AWS4' . $this->_secret, true);
         $signature_region = hash_hmac('sha256', $this->_region, $signature_date, true);
         $signature_service = hash_hmac('sha256', 's3', $signature_region, true);
         $signature_request = hash_hmac('sha256', 'aws4_request', $signature_service, true);
@@ -236,7 +236,7 @@ class S3
             'AWS4-HMAC-SHA256 Credential=' .
             $this->_key .
             '/' .
-            date('Ymd', $time) .
+            gmdate('Ymd', $time) .
             '/' .
             $this->_region .
             '/s3/aws4_request,';
@@ -281,7 +281,7 @@ class S3
         $headers = [
             'Host' => $this->_bucket . '.s3.amazonaws.com',
             'x-amz-content-sha256' => $hashed_payload,
-            'x-amz-date' => date('r', $time),
+            'x-amz-date' => gmdate('r', $time),
         ];
         ksort($headers);
         $signed_headers_string = strtolower(implode(';', array_keys($headers)));
@@ -297,11 +297,11 @@ class S3
         $canonical_request .= $hashed_payload;
 
         $string_to_sign = "AWS4-HMAC-SHA256\n";
-        $string_to_sign .= date('r', $time) . "\n";
-        $string_to_sign .= date('Ymd', $time) . '/' . $this->_region . "/s3/aws4_request\n";
+        $string_to_sign .= gmdate('r', $time) . "\n";
+        $string_to_sign .= gmdate('Ymd', $time) . '/' . $this->_region . "/s3/aws4_request\n";
         $string_to_sign .= hash('sha256', $canonical_request);
 
-        $signature_date = hash_hmac('sha256', date('Ymd', $time), 'AWS4' . $this->_secret, true);
+        $signature_date = hash_hmac('sha256', gmdate('Ymd', $time), 'AWS4' . $this->_secret, true);
         $signature_region = hash_hmac('sha256', $this->_region, $signature_date, true);
         $signature_service = hash_hmac('sha256', 's3', $signature_region, true);
         $signature_request = hash_hmac('sha256', 'aws4_request', $signature_service, true);
@@ -311,7 +311,7 @@ class S3
             'AWS4-HMAC-SHA256 Credential=' .
             $this->_key .
             '/' .
-            date('Ymd', $time) .
+            gmdate('Ymd', $time) .
             '/' .
             $this->_region .
             '/s3/aws4_request,';
@@ -357,7 +357,7 @@ class S3
         $headers = [
             'Host' => $this->_bucket . '.s3.amazonaws.com',
             'x-amz-content-sha256' => $hashed_payload,
-            'x-amz-date' => date('r', $time),
+            'x-amz-date' => gmdate('r', $time),
         ];
         ksort($headers);
         $signed_headers_string = strtolower(implode(';', array_keys($headers)));
@@ -373,11 +373,11 @@ class S3
         $canonical_request .= $hashed_payload;
 
         $string_to_sign = "AWS4-HMAC-SHA256\n";
-        $string_to_sign .= date('r', $time) . "\n";
-        $string_to_sign .= date('Ymd', $time) . '/' . $this->_region . "/s3/aws4_request\n";
+        $string_to_sign .= gmdate('r', $time) . "\n";
+        $string_to_sign .= gmdate('Ymd', $time) . '/' . $this->_region . "/s3/aws4_request\n";
         $string_to_sign .= hash('sha256', $canonical_request);
 
-        $signature_date = hash_hmac('sha256', date('Ymd', $time), 'AWS4' . $this->_secret, true);
+        $signature_date = hash_hmac('sha256', gmdate('Ymd', $time), 'AWS4' . $this->_secret, true);
         $signature_region = hash_hmac('sha256', $this->_region, $signature_date, true);
         $signature_service = hash_hmac('sha256', 's3', $signature_region, true);
         $signature_request = hash_hmac('sha256', 'aws4_request', $signature_service, true);
@@ -387,7 +387,7 @@ class S3
             'AWS4-HMAC-SHA256 Credential=' .
             $this->_key .
             '/' .
-            date('Ymd', $time) .
+            gmdate('Ymd', $time) .
             '/' .
             $this->_region .
             '/s3/aws4_request,';
