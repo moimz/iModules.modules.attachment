@@ -270,7 +270,12 @@ class Attachment
             }
         }
 
-        $route = '/files/' . $type . '/' . $this->_id . '/' . urlencode($this->_name);
+        if (($type == 'thumbnail' || $type == 'view') && $this->isResizable() == true) {
+            $name = preg_replace('/\.([a-z]+)$/', '.webp', $this->_name);
+        } else {
+            $name = $this->_name;
+        }
+        $route = '/files/' . $type . '/' . $this->_id . '/' . urlencode($name);
         return \Configs::dir() . (\Domains::has()?->isRewrite() == true ? $route : '/?route=' . $route);
     }
 
