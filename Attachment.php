@@ -631,29 +631,54 @@ class Attachment extends \Module
 
         session_write_close();
 
-        if ($attachment->getType() == 'image') {
-            $path = $attachment->getPath();
-        } else {
-            $path = $attachment->getPath();
+        if ($type == 'thumbnail' && $attachment->isResizable() == false) {
+            $type = 'view';
         }
 
-        if ($type != 'download') {
-            header('Content-Type: ' . $attachment->getMime());
-            header('Content-Length: ' . filesize($path));
-            header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 3600) . ' GMT');
-            header('Cache-Control: max-age=3600');
-            header('Pragma: public');
+        if ($type == 'view' && $attachment->isViewable() == false) {
+            $type = 'download';
+        }
 
-            readfile($path);
-            exit();
-        } else {
-            header('Content-Type: ' . $attachment->getMime());
-            header('Content-Length: ' . filesize($path));
+        $path = $attachment->getPath();
+        $size = $attachment->getSize();
+        $mime = $attachment->getMime();
+
+        if ($type == 'thumbnail') {
+            if (is_file($path . '.thumbnail') == true) {
+                $path = $path . '.thumbnail';
+                $size = filesize($path);
+                $mime = 'image/webp';
+            } else {
+                $success = $this->createThumbnail($path, $path . '.thumbnail', 600, false, 'webp');
+                if ($success == true) {
+                    $path = $path . '.thumbnail';
+                    $size = filesize($path);
+                    $mime = 'image/webp';
+                }
+            }
+        }
+
+        if ($type == 'view' && $attachment->isResizable() == true) {
+            if (is_file($path . '.view') == true) {
+                $path = $path . '.view';
+                $size = filesize($path);
+                $mime = 'image/webp';
+            } else {
+                $success = $this->createThumbnail($path, $path . '.view', 1600, false, 'webp');
+                if ($success == true) {
+                    $path = $path . '.view';
+                    $size = filesize($path);
+                    $mime = 'image/webp';
+                }
+            }
+        }
+
+        header('Content-Type: ' . $mime);
+        header('Content-Length: ' . $size);
+        if ($type == 'download') {
             header('Expires: 0');
-            header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+            header('Cache-Control: must-revalidate, post-check=0, pre-check=0', true);
             header('Cache-Control: private', false);
-            header('Pragma: public');
-            header('Expires: 0');
             header(
                 'Content-Disposition: attachment; filename="' .
                     rawurlencode($name) .
@@ -661,10 +686,14 @@ class Attachment extends \Module
                     rawurlencode($name)
             );
             header('Content-Transfer-Encoding: binary');
-
-            readfile($path);
-            exit();
+        } else {
+            header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 3600) . ' GMT', true);
+            header('Cache-Control: max-age=3600', true);
         }
+        header('Pragma: public', true);
+
+        readfile($path);
+        exit();
     }
 
     /**
