@@ -262,7 +262,7 @@ class S3
         $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         curl_close($curl);
 
-        return $code == 204;
+        return $code == 200;
     }
 
     /**
