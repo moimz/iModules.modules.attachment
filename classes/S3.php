@@ -127,7 +127,7 @@ class S3
         $hashed_payload = hash('sha256', $fileContents);
 
         $headers = [
-            'Host' => $this->_bucket . '.s3.amazonaws.com',
+            'Host' => $this->_bucket . '.s3.' . $this->_region . '.amazonaws.com',
             'Content-Type' => mime_content_type($filePath),
             'x-amz-content-sha256' => $hashed_payload,
             'x-amz-date' => gmdate('r', $time),
@@ -173,7 +173,7 @@ class S3
         }
 
         $curl = curl_init();
-        $url = 'http://' . $this->_bucket . '.s3.amazonaws.com' . $fileKey;
+        $url = 'http://' . $this->_bucket . '.s3.' . $this->_region . '.amazonaws.com' . $fileKey;
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_PUT, true);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PUT');
@@ -196,7 +196,7 @@ class S3
      * @param string $fileKey S3 파일키 (파일경로)
      * @return bool $existed
      */
-    public function has(string $fileKey): bool
+    public function has(string $fileKey, bool $is_headers = false): bool|array
     {
         $fileKey = $this->fileKey($fileKey);
         $time = time();
@@ -249,7 +249,7 @@ class S3
         }
 
         $curl = curl_init();
-        $url = 'http://' . $this->_bucket . '.s3.amazonaws.com' . $fileKey;
+        $url = 'http://' . $this->_bucket . '.s3.' . $this->_region . '.amazonaws.com' . $fileKey;
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'HEAD');
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
@@ -259,10 +259,14 @@ class S3
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_NOBODY, true);
         curl_exec($curl);
-        $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $cinfo = curl_getinfo($curl);
         curl_close($curl);
 
-        return $code == 200;
+        if ($is_headers === true) {
+            return $cinfo;
+        } else {
+            return $cinfo['http_code'] == 200;
+        }
     }
 
     /**
@@ -279,7 +283,7 @@ class S3
         $hashed_payload = hash('sha256', '');
 
         $headers = [
-            'Host' => $this->_bucket . '.s3.amazonaws.com',
+            'Host' => $this->_bucket . '.s3.' . $this->_region . '.amazonaws.com',
             'x-amz-content-sha256' => $hashed_payload,
             'x-amz-date' => gmdate('r', $time),
         ];
@@ -324,7 +328,7 @@ class S3
         }
 
         $curl = curl_init();
-        $url = 'http://' . $this->_bucket . '.s3.amazonaws.com' . $fileKey;
+        $url = 'http://' . $this->_bucket . '.s3.' . $this->_region . '.amazonaws.com' . $fileKey;
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
@@ -342,6 +346,86 @@ class S3
     }
 
     /**
+     * S3 에서 파일 콘텐츠를 읽는다.
+     *
+     * @param string $fileKey S3 파일키 (파일경로)
+     */
+    public function read(string $fileKey): void
+    {
+        $cinfo = $this->has($fileKey, true);
+
+        if ($cinfo['http_code'] !== 200) {
+            header('HTTP/1.1 ' . $cinfo['http_code']);
+            exit();
+        }
+
+        header('Content-Type: ' . $cinfo['content_type'], true);
+        header('Content-Length: ' . $cinfo['download_content_length'], true);
+
+        $fileKey = $this->fileKey($fileKey);
+        $time = time();
+
+        $hashed_payload = hash('sha256', '');
+
+        $headers = [
+            'Host' => $this->_bucket . '.s3.' . $this->_region . '.amazonaws.com',
+            'x-amz-content-sha256' => $hashed_payload,
+            'x-amz-date' => gmdate('r', $time),
+        ];
+        ksort($headers);
+        $signed_headers_string = strtolower(implode(';', array_keys($headers)));
+
+        $canonical_request = "GET\n";
+        $canonical_request .= $fileKey . "\n";
+        $canonical_request .= "\n";
+        foreach ($headers as $header => $value) {
+            $canonical_request .= strtolower($header) . ':' . trim($value) . "\n";
+        }
+        $canonical_request .= "\n";
+        $canonical_request .= $signed_headers_string . "\n";
+        $canonical_request .= $hashed_payload;
+
+        $string_to_sign = "AWS4-HMAC-SHA256\n";
+        $string_to_sign .= gmdate('r', $time) . "\n";
+        $string_to_sign .= gmdate('Ymd', $time) . '/' . $this->_region . "/s3/aws4_request\n";
+        $string_to_sign .= hash('sha256', $canonical_request);
+
+        $signature_date = hash_hmac('sha256', gmdate('Ymd', $time), 'AWS4' . $this->_secret, true);
+        $signature_region = hash_hmac('sha256', $this->_region, $signature_date, true);
+        $signature_service = hash_hmac('sha256', 's3', $signature_region, true);
+        $signature_request = hash_hmac('sha256', 'aws4_request', $signature_service, true);
+        $signature = hash_hmac('sha256', $string_to_sign, $signature_request);
+
+        $headers['Authorization'] =
+            'AWS4-HMAC-SHA256 Credential=' .
+            $this->_key .
+            '/' .
+            gmdate('Ymd', $time) .
+            '/' .
+            $this->_region .
+            '/s3/aws4_request,';
+        $headers['Authorization'] .= 'SignedHeaders=' . $signed_headers_string . ',';
+        $headers['Authorization'] .= 'Signature=' . $signature;
+
+        $curl_headers = [];
+        foreach ($headers as $header => $value) {
+            $curl_headers[] = "{$header}: {$value}";
+        }
+
+        $curl = curl_init();
+        $url = 'http://' . $this->_bucket . '.s3.' . $this->_region . '.amazonaws.com' . $fileKey;
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $curl_headers);
+        curl_exec($curl);
+        curl_close($curl);
+
+        exit();
+    }
+
+    /**
      * S3 에서 파일을 삭제한다.
      *
      * @param string $fileKey S3 파일키 (파일경로)
@@ -355,7 +439,7 @@ class S3
         $hashed_payload = hash('sha256', '');
 
         $headers = [
-            'Host' => $this->_bucket . '.s3.amazonaws.com',
+            'Host' => $this->_bucket . '.s3.' . $this->_region . '.amazonaws.com',
             'x-amz-content-sha256' => $hashed_payload,
             'x-amz-date' => gmdate('r', $time),
         ];
@@ -400,7 +484,7 @@ class S3
         }
 
         $curl = curl_init();
-        $url = 'http://' . $this->_bucket . '.s3.amazonaws.com' . $fileKey;
+        $url = 'http://' . $this->_bucket . '.s3.' . $this->_region . '.amazonaws.com' . $fileKey;
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
