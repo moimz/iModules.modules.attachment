@@ -572,11 +572,9 @@ namespace modules {
                     'data-type': file.attachment.type,
                     'data-extension': file.attachment.extension,
                 });
-                $icon.addClass('icon');
                 $preview.append($icon);
                 if (file.attachment.thumbnail !== null) {
                     const $image = Html.create('div');
-                    $image.addClass('image');
                     $image.setStyle('background-image', 'url(' + file.attachment.thumbnail + ')');
                     if (file.attachment.thumbnail.indexOf('blob') === 0) {
                         $image.setData('blob', file.attachment.thumbnail, false);
@@ -584,10 +582,11 @@ namespace modules {
                     $preview.append($image);
                 }
 
-                const $progress = Html.create('div');
-                $progress.addClass('progress');
-                $progress.append(Html.create('div'));
-                $progress.setStyleProperty('--percentage', 0);
+                const $progress = Html.create('progress', {
+                    min: '0',
+                    max: '100',
+                    value: '0',
+                });
                 $preview.append($progress);
 
                 $item.append($preview);
@@ -662,7 +661,7 @@ namespace modules {
                 $icon.setData('extension', file.attachment.extension);
 
                 if (file.attachment.thumbnail !== null) {
-                    const $image = Html.get('div.image', $preview);
+                    const $image = Html.get('div', $preview);
                     if ($image.getEl() !== null) {
                         if ($image.getData('blob') !== null) {
                             URL.revokeObjectURL($image.getData('blob'));
@@ -670,7 +669,6 @@ namespace modules {
                         $image.setStyle('background-image', 'url(' + file.attachment.thumbnail + ')');
                     } else {
                         const $image = Html.create('div');
-                        $image.addClass('image');
                         $image.setStyle('background-image', 'url(' + file.attachment.thumbnail + ')');
                         $preview.append($image);
                     }
@@ -710,10 +708,10 @@ namespace modules {
                     this.$dom
                 );
                 if ($file.getEl() !== null) {
-                    const $progress = Html.get('div.progress', $file);
+                    const $progress = Html.get('progress', $file);
                     if ($progress.getEl() !== null) {
-                        $progress.setStyleProperty(
-                            '--percentage',
+                        $progress.setAttr(
+                            'value',
                             (((file.uploaded + uploaded) / file.attachment.size) * 100).toFixed(2)
                         );
                     }
