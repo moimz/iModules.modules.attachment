@@ -3,13 +3,13 @@
  *
  * 폼 관련 스타일시트를 정의한다.
  * 
- * @file /styles/Admin.Form.scss
+ * @file /styles/Attachment.css
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
  * @modified 2023. 4. 10.
  */
 div[data-module='attachment'] {
-    i.icon {
+    i[data-type][data-extension] {
         display: inline-block;
         vertical-align: middle;
         background-position: 50% 50%;
@@ -70,13 +70,13 @@ div[data-module='attachment'] {
         > div[data-role='preview'] {
             position: relative;
 
-            > i.icon {
+            > i {
                 display: block;
                 position: absolute;
                 z-index: 0;
             }
 
-            > div.image {
+            > div {
                 display: block;
                 position: absolute;
                 z-index: 1;
@@ -89,7 +89,7 @@ div[data-module='attachment'] {
                 background-repeat: no-repeat;
             }
 
-            > div.progress {
+            > progress {
                 position: absolute;
                 z-index: 2;
             }
