@@ -613,6 +613,146 @@ class Attachment extends \Module
 
         return $result;
     }
+
+    /**
+     * 썸네일을 생성할때 지정된 가로 및 세로크기에 맞춰 비율에 따라 원본이미지를 자른 후 저장한다.
+     *
+     * @param string $imgPath 썸네일을 생성할 대상 이미지 경로
+     * @param string $thumbPath 썸네일이 저장될 경로
+     * @param int $width 썸네일 가로크기
+     * @param int $height 썸네일 세로크기
+     * @param bool $is_delete 원본 이미지파일을 삭제할 지 여부
+     * @param string $forceType 원본 이미지의 포맷과 무관하게 썸네일의 이미지포맷(JPG, GIF, PNG)를 지정할 경우 해당 포맷명
+     * @return bool $success
+     */
+    public function cropThumbnail(
+        string $imgPath,
+        string $thumbPath,
+        int $width,
+        int $height,
+        bool $delete = false,
+        ?string $forceType = null
+    ): bool {
+        $result = true;
+        $imginfo = @getimagesize($imgPath);
+        $extName = $imginfo[2];
+
+        if ($imginfo[0] == $width && $imginfo[1] == $height) {
+            @copy($imgPath, $thumbPath);
+            if ($delete == true) {
+                @unlink($imgPath);
+            }
+            return true;
+        }
+
+        switch ($extName) {
+            case '2':
+                ($src = @ImageCreateFromJPEG($imgPath)) or ($result = false);
+                $type = 'jpg';
+                break;
+            case '1':
+                ($src = @ImageCreateFromGIF($imgPath)) or ($result = false);
+                $type = 'gif';
+                break;
+            case '3':
+                ($src = @ImageCreateFromPNG($imgPath)) or ($result = false);
+                $type = 'png';
+                break;
+            default:
+                $result = false;
+        }
+
+        if ($result == true) {
+            if ($width * $imginfo[1] < $height * $imginfo[0]) {
+                $rs_img_width = round($imginfo[1] * ($width / $height));
+                $rs_img_height = $imginfo[1];
+
+                $x = round(($imginfo[0] - $rs_img_width) / 2);
+                $y = 0;
+            } else {
+                $rs_img_width = $imginfo[0];
+                $rs_img_height = round($imginfo[0] * ($height / $width));
+
+                $x = 0;
+                $y = round(($imginfo[1] - $rs_img_height) / 2);
+            }
+
+            $sc_img_width = $rs_img_width;
+            $sc_img_height = $rs_img_height;
+
+            $crop = @ImageCreateTrueColor($rs_img_width, $rs_img_height);
+
+            switch ($type) {
+                case 'png':
+                    $background = imagecolorallocate($src, 0, 0, 0);
+                    imagecolortransparent($crop, $background);
+                    imagealphablending($crop, false);
+                    imagesavealpha($crop, true);
+                    break;
+
+                case 'gif':
+                    $background = imagecolorallocate($src, 0, 0, 0);
+                    imagecolortransparent($src, $background);
+                    break;
+            }
+
+            @ImageCopyResampled(
+                $crop,
+                $src,
+                0,
+                0,
+                $x,
+                $y,
+                $rs_img_width,
+                $rs_img_height,
+                $rs_img_width,
+                $rs_img_height
+            ) or ($result = false);
+
+            if ($result == true) {
+                $thumb = @ImageCreateTrueColor($width, $height);
+                switch ($type) {
+                    case 'png':
+                        $background = imagecolorallocate($crop, 0, 0, 0);
+                        imagecolortransparent($thumb, $background);
+                        imagealphablending($thumb, false);
+                        imagesavealpha($thumb, true);
+                        break;
+
+                    case 'gif':
+                        $background = imagecolorallocate($crop, 0, 0, 0);
+                        imagecolortransparent($crop, $background);
+                        break;
+                }
+
+                @ImageCopyResampled($thumb, $crop, 0, 0, 0, 0, $width, $height, $rs_img_width, $rs_img_height) or
+                    ($result = false);
+            }
+
+            $type = $forceType != null ? $forceType : $type;
+
+            if ($type == 'jpg') {
+                @ImageJPEG($thumb, $thumbPath, 100) or ($result = false);
+            } elseif ($type == 'gif') {
+                @ImageGIF($thumb, $thumbPath, 100) or ($result = false);
+            } elseif ($type == 'png') {
+                @imagePNG($thumb, $thumbPath) or ($result = false);
+            } else {
+                $result = false;
+            }
+            @ImageDestroy($src);
+            @ImageDestroy($thumb);
+            @ImageDestroy($crop);
+            @chmod($thumbPath, 0755);
+        }
+
+        if ($delete == true) {
+            @unlink($imgPath);
+        }
+
+        return $result;
+    }
+
     /**
      * 파일 라우팅을 처리한다.
      *
@@ -673,24 +813,13 @@ class Attachment extends \Module
             }
         }
 
-        header('Content-Type: ' . $mime);
-        header('Content-Length: ' . $size);
+        \Header::type($mime);
+        \Header::length($size);
         if ($type == 'download') {
-            header('Expires: 0');
-            header('Cache-Control: must-revalidate, post-check=0, pre-check=0', true);
-            header('Cache-Control: private', false);
-            header(
-                'Content-Disposition: attachment; filename="' .
-                    rawurlencode($name) .
-                    '"; filename*=UTF-8\'\'' .
-                    rawurlencode($name)
-            );
-            header('Content-Transfer-Encoding: binary');
+            \Header::attachment($name);
         } else {
-            header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 3600) . ' GMT', true);
-            header('Cache-Control: max-age=3600', true);
+            \Header::cache(3600);
         }
-        header('Pragma: public', true);
 
         readfile($path);
         exit();
@@ -708,7 +837,7 @@ class Attachment extends \Module
     {
         switch ($code) {
             case 'NOT_FOUND_FILE':
-                $error = \ErrorHandler::data();
+                $error = \ErrorHandler::data($code);
                 $error->message = $this->getErrorText($code);
                 $error->suffix = $message;
                 return $error;
