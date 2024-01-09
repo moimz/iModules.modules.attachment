@@ -309,9 +309,19 @@ class Attachment
         $info->height = $this->_height;
         $info->view = $this->isViewable() == true ? $this->getUrl('view') : null;
         $info->download = $this->getUrl('download');
-        $info->thumbnail = $this->isResizable() == true ? $this->getUrl('thumbnail') : null;
+        $info->thumbnail = $this->isImage() == true ? $this->getUrl('thumbnail') : null;
 
         return $info;
+    }
+
+    /**
+     * 파일이 브라우저를 통해 보여질 수 있는 이미지인지 확인한다.
+     *
+     * @return bool $is_image
+     */
+    public function isImage(): bool
+    {
+        return in_array($this->getType(), ['image', 'svg', 'icon']) == true;
     }
 
     /**
@@ -321,7 +331,7 @@ class Attachment
      */
     public function isResizable(): bool
     {
-        return in_array($this->getType(), ['image', 'svg', 'icon']) == true;
+        return in_array($this->getType(), ['image']) == true;
     }
 
     /**
