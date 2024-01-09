@@ -355,7 +355,7 @@ class S3
         $cinfo = $this->has($fileKey, true);
 
         if ($cinfo['http_code'] !== 200) {
-            header('HTTP/1.1 ' . $cinfo['http_code']);
+            header($_SERVER['SERVER_PROTOCOL'] . ' ' . $cinfo['http_code']);
             exit();
         }
 
