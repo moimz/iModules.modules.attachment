@@ -4,12 +4,12 @@
  *
  * 첨부파일모듈에 의해 첨부된 파일 구조체를 정의한다.
  *
- * @file /modules/attachment/dto/Attachment.php
+ * @file /modules/attachment/dtos/Attachment.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
  * @modified 2023. 4. 10.
  */
-namespace modules\attachment\dto;
+namespace modules\attachment\dtos;
 class Attachment
 {
     /**

@@ -14,12 +14,12 @@ namespace modules\attachment;
 class Attachment extends \Module
 {
     /**
-     * @var \modules\attachment\dto\File[] $_files 파일정보를 보관한다.
+     * @var \modules\attachment\dtos\File[] $_files 파일정보를 보관한다.
      */
     private static array $_files = [];
 
     /**
-     * @var \modules\attachment\dto\Draft[] $_drafts 임시파일정보를 보관한다.
+     * @var \modules\attachment\dtos\Draft[] $_drafts 임시파일정보를 보관한다.
      */
     private static array $_attachments = [];
 
@@ -80,9 +80,9 @@ class Attachment extends \Module
      * 첨부파일 정보를 가져온다.
      *
      * @param string $hash 파일해시
-     * @return ?\modules\attachment\dto\File $file
+     * @return ?\modules\attachment\dtos\File $file
      */
-    public function getFile(string $hash): ?\modules\attachment\dto\File
+    public function getFile(string $hash): ?\modules\attachment\dtos\File
     {
         if (isset(self::$_files[$hash]) == false) {
             $file = $this->db()
@@ -95,7 +95,7 @@ class Attachment extends \Module
                 return null;
             }
 
-            self::$_files[$hash] = new \modules\attachment\dto\File($file);
+            self::$_files[$hash] = new \modules\attachment\dtos\File($file);
         }
 
         return self::$_files[$hash];
@@ -105,9 +105,9 @@ class Attachment extends \Module
      * 첨부파일 정보를 가져온다.
      *
      * @param string $attachment_id 첨부파일고유값
-     * @return ?\modules\attachment\dto\Attachment $attachment
+     * @return ?\modules\attachment\dtos\Attachment $attachment
      */
-    public function getAttachment(string $attachment_id): ?\modules\attachment\dto\Attachment
+    public function getAttachment(string $attachment_id): ?\modules\attachment\dtos\Attachment
     {
         if (isset(self::$_attachments[$attachment_id]) == false) {
             /**
@@ -130,7 +130,7 @@ class Attachment extends \Module
                 return null;
             }
 
-            self::$_attachments[$attachment_id] = new \modules\attachment\dto\Attachment($attachment);
+            self::$_attachments[$attachment_id] = new \modules\attachment\dtos\Attachment($attachment);
         }
 
         return self::$_attachments[$attachment_id];
@@ -140,9 +140,9 @@ class Attachment extends \Module
      * 첨부파일에 의해 첨부된 파일이 아닌, 실제 파일경로를 이용하여 파일 정보를 가져온다.
      *
      * @param string $path 첨부파일 고유값
-     * @return \modules\attachment\dto\File $file
+     * @return \modules\attachment\dtos\File $file
      */
-    public function getRawFile(string $path): ?\modules\attachment\dto\File
+    public function getRawFile(string $path): ?\modules\attachment\dtos\File
     {
         if (isset(self::$_files[$path]) == true) {
             return self::$_files[$path];
