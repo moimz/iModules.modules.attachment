@@ -4,7 +4,7 @@
  *
  * 첨부파일 정보를 가져온다.
  *
- * @file /modules/attachment/process/attachment.get.php
+ * @file /modules/attachment/processes/attachment.get.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
  * @modified 2023. 4. 10.

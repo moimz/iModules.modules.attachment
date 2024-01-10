@@ -4,7 +4,7 @@
  *
  * 파일을 업로드 받는다.
  *
- * @file /modules/attachment/process/upload.post.php
+ * @file /modules/attachment/processes/upload.post.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
  * @modified 2023. 4. 10.

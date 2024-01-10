@@ -4,7 +4,7 @@
  *
  * 파일업로드를 위한 업로드 URL 을 가져온다.
  *
- * @file /modules/attachment/process/draft.post.php
+ * @file /modules/attachment/processes/draft.post.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
  * @modified 2023. 4. 10.
