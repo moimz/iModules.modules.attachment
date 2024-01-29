@@ -8,7 +8,7 @@
  * @file /modules/attachment/Attachment.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2023. 6. 27.
+ * @modified 2024. 1. 29.
  */
 namespace modules\attachment;
 class Attachment extends \Module
@@ -152,7 +152,7 @@ class Attachment extends \Module
             return null;
         }
 
-        return new dto\File($path);
+        return new \modules\attachment\dtos\File($path);
     }
 
     /**
