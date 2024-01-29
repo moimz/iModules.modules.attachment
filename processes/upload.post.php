@@ -7,10 +7,9 @@
  * @file /modules/attachment/processes/upload.post.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2023. 4. 10.
+ * @modified 2024. 1. 29.
  *
  * @var \modules\attachment\Attachment $me
- * @var Input $input
  */
 if (defined('__IM_PROCESS__') == false) {
     exit();
@@ -31,7 +30,7 @@ if ($draft === null || $draft->expired_at < time()) {
 }
 
 if (preg_match('/bytes ([0-9]+)\-([0-9]+)\/([0-9]+)/', $_SERVER['HTTP_CONTENT_RANGE'] ?? '', $range) == true) {
-    $chunk = $input->body();
+    $chunk = Input::body();
     $rangeStart = intval($range[1]);
     $rangeEnd = intval($range[2]);
     $fileSize = intval($range[3]);

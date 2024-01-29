@@ -7,18 +7,17 @@
  * @file /modules/attachment/processes/draft.post.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2023. 4. 10.
+ * @modified 2024. 1. 26.
  *
  * @var \modules\attachment\Attachment $me
- * @var Input $input
  */
 if (defined('__IM_PROCESS__') == false) {
     exit();
 }
 
 $errors = [];
-$name = $input->get('name', $errors);
-$size = $input->get('size', $errors);
+$name = Input::get('name', $errors);
+$size = Input::get('size', $errors);
 
 if (count($errors) == 0) {
     $draft_id = UUID::v1($name . $size);
