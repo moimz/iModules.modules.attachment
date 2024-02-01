@@ -19,7 +19,7 @@ class Attachment extends \Module
     private static array $_files = [];
 
     /**
-     * @var \modules\attachment\dtos\Draft[] $_drafts 임시파일정보를 보관한다.
+     * @var \modules\attachment\dtos\Attachment[] $_attachments 첨부파일정보를 보관한다.
      */
     private static array $_attachments = [];
 
@@ -47,6 +47,16 @@ class Attachment extends \Module
         }
 
         return $dir;
+    }
+
+    /**
+     * 첨부파일 임시저장폴더를 가져온다.
+     *
+     * @return string $dir 폴더
+     */
+    public function getDraftPath(): string
+    {
+        return \Configs::attachment() . '/' . $this->getDraftDir();
     }
 
     /**
@@ -104,7 +114,7 @@ class Attachment extends \Module
     /**
      * 첨부파일 정보를 가져온다.
      *
-     * @param string $attachment_id 첨부파일고유값
+     * @param string $attachment_id 첨부파일고유값 또는 임시파일 고유값
      * @return ?\modules\attachment\dtos\Attachment $attachment
      */
     public function getAttachment(string $attachment_id): ?\modules\attachment\dtos\Attachment
@@ -322,7 +332,7 @@ class Attachment extends \Module
                 }
 
                 $path = $this->getFileDir($hash) . '/' . $hash . '.' . \Format::random(4);
-                $moved = rename($attachment->getPath(), \Configs::attachment() . '/' . $path);
+                $moved = \File::move($attachment->getPath(), \Configs::attachment() . '/' . $path);
                 if ($moved == false) {
                     return false;
                 }
@@ -385,6 +395,8 @@ class Attachment extends \Module
                 ->get('attachment_id');
             $this->deleteFiles($deleteFiles);
         }
+
+        unset(self::$_attachments[$attachment_id]);
 
         return true;
     }
@@ -507,6 +519,91 @@ class Attachment extends \Module
         }
 
         return $success;
+    }
+
+    /**
+     * 임시파일 고유값을 생성한다.
+     *
+     * @param string $base 고유값 생성을 위한 파일경로 또는 파일명
+     */
+    public function createDraftId(string $base): string
+    {
+        while (true) {
+            $draft_id = \UUID::v1($base);
+            if (
+                $this->db()
+                    ->select()
+                    ->from($this->table('attachments'))
+                    ->where('attachment_id', $draft_id)
+                    ->has() == false
+            ) {
+                return $draft_id;
+            }
+        }
+    }
+
+    /**
+     * 업로드를 시작하기 위해 파일명과 파일크기로 임시파일을 생성한다.
+     *
+     * @param string $name 파일명
+     * @param int $size 파일크기
+     * @return string $draft_id 임시파일고유값
+     */
+    public function createDraftByName(string $name, int $size): string
+    {
+        $draft_id = $this->createDraftId($name . $size);
+        $this->db()
+            ->insert($this->table('drafts'), [
+                'draft_id' => $draft_id,
+                'name' => $name,
+                'path' => $this->getDraftDir() . '/' . $draft_id . '-' . \Format::random(4),
+                'extension' => $this->getFileExtension($name),
+                'size' => $size,
+                'created_at' => time(),
+                'expired_at' => time() + 60 * 60 * 24,
+            ])
+            ->execute();
+
+        return $draft_id;
+    }
+
+    /**
+     * 경로상의 파일로 임시파일을 생성하고 파일을 임시파일경로로 이동한다.
+     *
+     * @param string $path 파일경로
+     * @return string|bool $draft_id 임시파일고유값
+     */
+    public function createDraftByPath(string $path): string|bool
+    {
+        if (is_file($path) == false) {
+            return false;
+        }
+
+        $name = basename($path);
+        $draft_id = $this->createDraftId($path);
+        $draft_name = $draft_id . '-' . \Format::random(4);
+        $this->db()
+            ->insert($this->table('drafts'), [
+                'draft_id' => $draft_id,
+                'name' => $name,
+                'path' => $this->getDraftDir() . '/' . $draft_name,
+                'extension' => $this->getFileExtension($name),
+                'size' => filesize($path),
+                'created_at' => time(),
+                'expired_at' => time() + 60 * 60 * 24,
+            ])
+            ->execute();
+
+        $success = \File::move($path, $this->getDraftPath() . '/' . $draft_name);
+        if ($success == false) {
+            $this->db()
+                ->delete($this->table('drafts'))
+                ->where('draft_id', $draft_id)
+                ->execute();
+            return false;
+        }
+
+        return $draft_id;
     }
 
     /**

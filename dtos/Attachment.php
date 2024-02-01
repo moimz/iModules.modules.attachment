@@ -24,16 +24,22 @@ class Attachment
 
     /**
      * @var string $_component_type 첨부한 컴포넌트종류
-     * @var string $_component_name 첨부한 컴포넌트명
      */
     private string $_component_type;
+
+    /**
+     * @var string $_component_name 첨부한 컴포넌트명
+     */
     private string $_component_name;
 
     /**
      * @var string $_position_type 업로드위치
-     * @var string $_position_id 업로드위치고유값
      */
     private string $_position_type;
+
+    /**
+     * @var string $_position_id 업로드위치고유값
+     */
     private string $_position_id;
 
     /**
@@ -92,11 +98,6 @@ class Attachment
     private ?object $_extras;
 
     /**
-     * @var \modules\attachment\Attachment $_attachment 첨부파일모듈
-     */
-    private static \modules\attachment\Attachment $_attachment;
-
-    /**
      * 파일 구조체를 정의한다.
      *
      * @param object $attachment 첨부파일정보
@@ -115,33 +116,27 @@ class Attachment
             $this->_id = $attachment->draft_id;
         }
 
-        $this->_hash = $attachment->hash;
-        $this->_name = $attachment->name;
-        $this->_path = $attachment->path;
-        $this->_type = $attachment->type;
-        $this->_mime = $attachment->mime;
-        $this->_extension = $attachment->extension;
-        $this->_size = $attachment->size;
-        $this->_width = $attachment->width;
-        $this->_height = $attachment->height;
-        $this->_created_at = $attachment->created_at;
-    }
-
-    /**
-     * 첨부파일모듈 클래스를 가져온다.
-     *
-     * @return \modules\attachment\Attachment $mAttachment
-     */
-    public function getModule(): \modules\attachment\Attachment
-    {
-        if (isset(self::$_attachment) == false) {
-            /*
-             * @var \modules\attachment\Attachment $mAttachment
-             */
-            self::$_attachment = \Modules::get('attachment');
+        if ($attachment->hash !== null) {
+            $this->_hash = $attachment->hash;
         }
 
-        return self::$_attachment;
+        $this->_name = $attachment->name;
+        $this->_path = $attachment->path;
+
+        if ($attachment->type !== null) {
+            $this->_type = $attachment->type;
+        }
+
+        if ($attachment->type !== null) {
+            $this->_mime = $attachment->mime;
+        }
+
+        $this->_extension = $attachment->extension;
+        $this->_size = $attachment->size;
+
+        $this->_width = $attachment->width ?? 0;
+        $this->_height = $attachment->height ?? 0;
+        $this->_created_at = $attachment->created_at;
     }
 
     /**
@@ -172,6 +167,41 @@ class Attachment
     public function getName(): string
     {
         return $this->_name;
+    }
+
+    /**
+     * 파일명을 변경한다.
+     *
+     * @param string $name 변경할 파일명
+     * @param bool $extension 파일확장자 포함여부
+     */
+    public function setName(string $name, bool $extension = false): \modules\attachment\dtos\Attachment
+    {
+        if ($extension == true) {
+            $this->_name = $name;
+        } else {
+            $this->_name = $name . '.' . $this->getExtension();
+        }
+
+        /**
+         * @var \modules\attachment\Attachment $mAttachment
+         */
+        $mAttachment = \Modules::get('attachment');
+        if ($this->isPublished() == true) {
+            $mAttachment
+                ->db()
+                ->update($mAttachment->table('attachments'), ['name' => $this->_name])
+                ->where('attachment_id', $this->_id)
+                ->execute();
+        } else {
+            $mAttachment
+                ->db()
+                ->update($mAttachment->table('drafts'), ['name' => $this->_name])
+                ->where('draft_id', $this->_id)
+                ->execute();
+        }
+
+        return $this;
     }
 
     /**
@@ -252,6 +282,63 @@ class Attachment
     public function getCreatedAt(): int
     {
         return $this->_created_at;
+    }
+
+    /**
+     * 파일정보를 갱신한다.
+     *
+     * @return bool $success
+     */
+    public function update(): bool
+    {
+        /**
+         * @var \modules\attachment\Attachment $mAttachment
+         */
+        $mAttachment = \Modules::get('attachment');
+        if (is_file($this->getPath()) == true) {
+            $file = $mAttachment->getRawFile($this->getPath());
+            if ($file === null) {
+                return false;
+            }
+
+            if ($this->isPublished() == true) {
+                if ($file->getHash() !== $this->getHash()) {
+                    // @todo 파일이 변경됨
+                    return false;
+                }
+            } else {
+                $update = [
+                    'hash' => $file->getHash(),
+                    'name' => $file->getName(
+                        $this->getName(),
+                        $mAttachment->getFileExtension($this->getName(), $file->getMime())
+                    ),
+                    'type' => $file->getType(),
+                    'mime' => $file->getMime(),
+                    'extension' => $mAttachment->getFileExtension($this->getName(), $file->getMime()),
+                    'width' => $file->getWidth(),
+                    'height' => $file->getHeight(),
+                ];
+
+                $mAttachment
+                    ->db()
+                    ->update($mAttachment->table('drafts'), $update)
+                    ->where('draft_id', $this->getId())
+                    ->execute();
+
+                $this->_hash = $update['hash'];
+                $this->_name = $update['name'];
+                $this->_type = $update['type'];
+                $this->_mime = $update['mime'];
+                $this->_extension = $update['extension'];
+                $this->_width = $update['width'];
+                $this->_height = $update['height'];
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
