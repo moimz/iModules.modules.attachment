@@ -88,6 +88,11 @@ class Attachment
     private int $_created_at;
 
     /**
+     * @var int $_expired_at 업로드대기만료일시
+     */
+    private int $_expired_at;
+
+    /**
      * @var int $_download 다운로드수
      */
     private int $_download;
@@ -127,16 +132,19 @@ class Attachment
             $this->_type = $attachment->type;
         }
 
-        if ($attachment->type !== null) {
+        if ($attachment->mime !== null) {
             $this->_mime = $attachment->mime;
         }
 
-        $this->_extension = $attachment->extension;
+        if ($attachment->extension !== null) {
+            $this->_extension = $attachment->extension;
+        }
         $this->_size = $attachment->size;
 
         $this->_width = $attachment->width ?? 0;
         $this->_height = $attachment->height ?? 0;
         $this->_created_at = $attachment->created_at;
+        $this->_expired_at = $attachment->expired_at ?? 0;
     }
 
     /**
@@ -152,11 +160,11 @@ class Attachment
     /**
      * 파일해시를 가져온다.
      *
-     * @return string $name
+     * @return string $hash
      */
     public function getHash(): string
     {
-        return $this->_hash;
+        return isset($this->_hash) == true ? $this->_hash : '';
     }
 
     /**
@@ -167,6 +175,34 @@ class Attachment
     public function getName(): string
     {
         return $this->_name;
+    }
+
+    /**
+     * 파일 기본아이콘을 가져온다.
+     *
+     * @return string $icon
+     */
+    public function getIcon(): string
+    {
+        $icon = 'file';
+
+        /**
+         * @var \modules\attachment\Attachment $mAttachment
+         */
+        $mAttachment = \Modules::get('attachment');
+        if (in_array($this->getType(), ['archive', 'audio', 'document', 'image', 'video']) == true) {
+            $icon = 'file_type_' . $this->_type;
+        }
+
+        if (in_array($this->getExtension(), ['doc', 'docx', 'hwp', 'pdf', 'ppt', 'pptx', 'xls', 'xlsx']) == true) {
+            $icon = 'file_extension_' . substr($this->_type, 0, 3);
+        }
+
+        if ($this->getExtension() == 'svg') {
+            $icon = 'file_type_image';
+        }
+
+        return $mAttachment->getDir() . '/images/' . $icon . '.png';
     }
 
     /**
@@ -221,7 +257,7 @@ class Attachment
      */
     public function getType(): string
     {
-        return $this->_type;
+        return isset($this->_type) == true ? $this->_type : '';
     }
 
     /**
@@ -231,7 +267,7 @@ class Attachment
      */
     public function getMime(): string
     {
-        return $this->_mime;
+        return isset($this->_mime) == true ? $this->_mime : '';
     }
 
     /**
@@ -241,7 +277,7 @@ class Attachment
      */
     public function getExtension(): string
     {
-        return $this->_extension;
+        return isset($this->_extension) == true ? $this->_extension : '';
     }
 
     /**
@@ -282,6 +318,42 @@ class Attachment
     public function getCreatedAt(): int
     {
         return $this->_created_at;
+    }
+
+    /**
+     * 파일을 첨부한 컴포넌트를 가져온다.
+     *
+     * @return ?\Component $component
+     */
+    public function getComponent(): ?\Component
+    {
+        if (isset($this->_component_type) == true && isset($this->_component_name) == true) {
+            if ($this->_component_type == 'module') {
+                return \Modules::get($this->_component_name);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 파일이 첨부된 위치종류를 가져온다.
+     *
+     * @return ?string $position_type
+     */
+    public function getPositionType(): ?string
+    {
+        return isset($this->_position_type) == true ? $this->_position_type : null;
+    }
+
+    /**
+     * 파일이 첨부된 위치 고유값을 가져온다.
+     *
+     * @return ?string $position_id
+     */
+    public function getPositionId(): ?string
+    {
+        return isset($this->_position_id) == true ? $this->_position_id : null;
     }
 
     /**
@@ -378,30 +450,6 @@ class Attachment
     }
 
     /**
-     * 파일정보를 가져온다.
-     *
-     * @return object $info
-     */
-    public function getInfo(): object
-    {
-        $info = new \stdClass();
-
-        $info->id = $this->_id;
-        $info->name = $this->_name;
-        $info->type = $this->_type;
-        $info->mime = $this->_mime;
-        $info->extension = $this->_extension;
-        $info->size = $this->_size;
-        $info->width = $this->_width;
-        $info->height = $this->_height;
-        $info->view = $this->isViewable() == true ? $this->getUrl('view') : null;
-        $info->download = $this->getUrl('download');
-        $info->thumbnail = $this->isImage() == true ? $this->getUrl('thumbnail') : null;
-
-        return $info;
-    }
-
-    /**
      * 파일이 브라우저를 통해 보여질 수 있는 이미지인지 확인한다.
      *
      * @return bool $is_image
@@ -440,5 +488,32 @@ class Attachment
     public function isPublished(): bool
     {
         return isset($this->_component_type) == true && isset($this->_component_name) == true;
+    }
+
+    /**
+     * 파일정보를 JSON 으로 가져온다.
+     *
+     * @return object $json
+     */
+    public function getJson(): object
+    {
+        $attachment = new \stdClass();
+
+        $attachment->id = $this->_id;
+        $attachment->icon = $this->getIcon();
+        $attachment->name = $this->_name;
+        $attachment->type = $this->getType();
+        $attachment->mime = $this->getMime();
+        $attachment->extension = $this->getExtension();
+        $attachment->size = $this->_size;
+        $attachment->width = $this->getWidth();
+        $attachment->height = $this->getHeight();
+        $attachment->created_at = $this->_created_at;
+        $attachment->expired_at = $this->isPublished() == true ? null : $this->_expired_at;
+        $attachment->view = $this->isViewable() == true ? $this->getUrl('view') : null;
+        $attachment->download = $this->getUrl('download');
+        $attachment->thumbnail = $this->isImage() == true ? $this->getUrl('thumbnail') : null;
+
+        return $attachment;
     }
 }

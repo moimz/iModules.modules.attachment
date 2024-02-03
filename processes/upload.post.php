@@ -87,7 +87,7 @@ if (preg_match('/bytes ([0-9]+)\-([0-9]+)\/([0-9]+)/', $_SERVER['HTTP_CONTENT_RA
         $results->id = $draft_id;
         $results->status = 'COMPLETE';
         $results->uploaded = $fileSize;
-        $results->attachment = $me->getAttachment($draft_id)->getInfo();
+        $results->attachment = $me->getAttachment($draft_id)->getJson();
     } else {
         $results->success = true;
         $results->id = $draft_id;

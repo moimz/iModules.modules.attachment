@@ -15,6 +15,35 @@
             "max_file_size_help": "업로드시 각 파일별 최대 용량을 MB 단위로 설정합니다. (0 입력시 무제한)",
             "max_upload_size": "총업로드용량",
             "max_upload_size_help": "다중파일 업로드시 모든 파일에 대한 최대 용량을 MB 단위로 설정합니다. (0 입력시 무제한)"
+        },
+        "contexts": {
+            "attachments": "첨부파일관리"
+        },
+        "scopes": {
+            "attachments": {
+                "title": "첨부파일관리",
+                "view": "파일보기",
+                "delete": "파일삭제"
+            }
+        },
+        "attachments": {
+            "title": "첨부파일관리",
+            "attachment_id": "첨부파일고유값",
+            "name": "파일명",
+            "component": "컴포넌트명",
+            "position": "첨부위치",
+            "path": "파일경로",
+            "size": "크기",
+            "created_at": "첨부일시"
+        },
+        "drafts": {
+            "title": "임시파일관리",
+            "draft_id": "임시파일고유값",
+            "expired_at": "보관만료일시",
+            "delete": "임시파일삭제",
+            "actions": {
+                "delete": "임시파일을 삭제하시겠습니까?<br>아직 어떤 컴포넌트에서도 사용되고 있지 않지만, 이 파일을 참조하고 있는 객체에 영향을 끼칠 수 있습니다."
+            }
         }
     }
 }
