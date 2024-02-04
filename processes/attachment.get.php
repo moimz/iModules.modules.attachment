@@ -7,7 +7,7 @@
  * @file /modules/attachment/processes/attachment.get.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2023. 4. 10.
+ * @modified 2024. 2. 4.
  *
  * @var \modules\attachment\Attachment $me
  */
@@ -19,4 +19,4 @@ $id = Request::get('id', true);
 $attachment = $me->getAttachment($id);
 
 $results->success = true;
-$results->attachment = $attachment->getInfo();
+$results->attachment = $attachment?->getJson();

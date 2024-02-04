@@ -95,6 +95,50 @@ namespace modules {
                             },
                         });
                     },
+                    /**
+                     * 만료일이 경과한 모든 임시파일을 삭제한다.
+                     */
+                    deleteAll: (): void => {
+                        Aui.Message.show({
+                            title: Aui.getErrorText('CONFIRM'),
+                            message: this.printText('admin.drafts.actions.delete_all'),
+                            icon: Aui.Message.CONFIRM,
+                            buttons: Aui.Message.DANGERCANCEL,
+                            handler: (button) => {
+                                if (button.action == 'ok') {
+                                    Aui.Message.progress({
+                                        method: 'DELETE',
+                                        url: this.getProcessUrl('drafts'),
+                                        message: this.printText('admin.drafts.actions.delete_all_start'),
+                                        progress: (progressBar, results) => {
+                                            if (results.end == true) {
+                                                progressBar.setMessage(
+                                                    this.printText('admin.drafts.actions.deleted_all', {
+                                                        total: Format.number(results.total),
+                                                    })
+                                                );
+                                            } else {
+                                                progressBar.setMessage(
+                                                    this.printText('admin.drafts.actions.delete_all_progress', {
+                                                        current: Format.number(results.current),
+                                                        total: Format.number(results.total),
+                                                    })
+                                                );
+                                            }
+                                        },
+                                        handler: async (_button, results) => {
+                                            if (results.success == true) {
+                                                const drafts = Aui.getComponent('drafts') as Aui.Grid.Panel;
+                                                await drafts.getStore().reload();
+                                            }
+                                        },
+                                    });
+                                } else {
+                                    Aui.Message.close();
+                                }
+                            },
+                        });
+                    },
                 };
             }
         }

@@ -43,7 +43,7 @@ Admin.ready(async () => {
                         },
                     }),
                 ]),
-                store: new Aui.Store.Ajax({
+                store: new Aui.Store.Remote({
                     url: me.getProcessUrl('attachments'),
                     fields: [
                         { name: 'created_at', type: 'int' },
@@ -99,7 +99,7 @@ Admin.ready(async () => {
                         dataIndex: 'path',
                         minWidth: 240,
                         flex: 1,
-                        textClass: 'small',
+                        textClass: 'monospace small',
                     },
                     {
                         text: (await me.getText('admin.attachments.size')),
@@ -160,6 +160,14 @@ Admin.ready(async () => {
                             //
                         },
                     }),
+                    '->',
+                    new Aui.Button({
+                        iconClass: 'mi mi-trash',
+                        text: (await me.getText('admin.drafts.delete_all')),
+                        handler: () => {
+                            me.drafts.deleteAll();
+                        },
+                    }),
                 ],
                 bottombar: new Aui.Grid.Pagination([
                     new Aui.Button({
@@ -170,7 +178,7 @@ Admin.ready(async () => {
                         },
                     }),
                 ]),
-                store: new Aui.Store.Ajax({
+                store: new Aui.Store.Remote({
                     url: me.getProcessUrl('drafts'),
                     fields: [
                         { name: 'created_at', type: 'int' },
@@ -203,7 +211,7 @@ Admin.ready(async () => {
                         dataIndex: 'path',
                         minWidth: 240,
                         flex: 1,
-                        textClass: 'small',
+                        textClass: 'monospace small',
                     },
                     {
                         text: (await me.getText('admin.attachments.size')),

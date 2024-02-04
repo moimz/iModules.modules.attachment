@@ -2,12 +2,12 @@
 /**
  * 이 파일은 아이모듈 첨부파일모듈의 일부입니다. (https://www.imodules.io)
  *
- * 임시파일을 삭제한다.
+ * 보관기간이 만료된 모든 임시파일을 삭제한다.
  *
- * @file /modules/attachment/processes/draft.delete.php
+ * @file /modules/attachment/processes/drafts.delete.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 1. 26.
+ * @modified 2024. 2. 4.
  *
  * @var \modules\attachment\Attachment $me
  */
@@ -24,20 +24,15 @@ if ($me->getAdmin()->checkPermission('attachments') == false) {
     return;
 }
 
-$draft_ids = Request::get('draft_ids', true);
-$draft_ids = explode(',', $draft_ids);
+$drafts = $me
+    ->db()
+    ->select(['draft_id', 'path'])
+    ->from($me->table('drafts'))
+    ->where('expired_at', time(), '<')
+    ->get();
 
-foreach ($draft_ids as $draft_id) {
-    $draft = $me
-        ->db()
-        ->select()
-        ->from($me->table('drafts'))
-        ->where('draft_id', $draft_id)
-        ->getOne();
-    if ($draft === null) {
-        continue;
-    }
-
+$progress = new Progress(count($drafts));
+foreach ($drafts as $index => $draft) {
     $removed =
         File::remove(Configs::attachment() . '/' . $draft->path) &&
         File::remove(Configs::attachment() . '/' . $draft->path . '.view') &&
@@ -46,9 +41,11 @@ foreach ($draft_ids as $draft_id) {
     if ($removed == true) {
         $me->db()
             ->delete($me->table('drafts'))
-            ->where('draft_id', $draft_id)
+            ->where('draft_id', $draft->draft_id)
             ->execute();
     }
+
+    $progress->progress($index + 1);
 }
 
-$results->success = true;
+$progress->end(true);

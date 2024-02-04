@@ -866,7 +866,7 @@ class Attachment extends \Module
             \ErrorHandler::print($this->error('NOT_FOUND_FILE', $route->getUrl()));
         }
 
-        session_write_close();
+        \iModules::session_stop();
 
         if ($type == 'thumbnail' && $attachment->isResizable() == false) {
             $type = 'view';
