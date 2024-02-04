@@ -270,6 +270,116 @@ Admin.ready(async () => {
                     },
                 },
             }),
+            new Aui.Grid.Panel({
+                id: 'trashes',
+                iconClass: 'xi xi-marquee-add',
+                title: (await me.getText('admin.trashes.title')),
+                selection: { selectable: true, display: 'check' },
+                autoLoad: false,
+                border: false,
+                layout: 'fit',
+                topbar: [
+                    new Aui.Form.Field.Search({
+                        width: 200,
+                        emptyText: (await me.getText('keyword')),
+                        handler: async () => {
+                            //
+                        },
+                    }),
+                    '-',
+                    new Aui.Button({
+                        iconClass: 'mi mi-search',
+                        text: (await me.getText('admin.trashes.search')),
+                        handler: () => {
+                            me.trashes.search();
+                        },
+                    }),
+                    '->',
+                    new Aui.Button({
+                        iconClass: 'mi mi-trash',
+                        text: (await me.getText('admin.trashes.delete_all')),
+                        handler: () => {
+                            me.trashes.deleteAll();
+                        },
+                    }),
+                ],
+                bottombar: new Aui.Grid.Pagination([
+                    new Aui.Button({
+                        iconClass: 'mi mi-refresh',
+                        handler: (button) => {
+                            const grid = button.getParent().getParent();
+                            grid.getStore().reload();
+                        },
+                    }),
+                ]),
+                store: new Aui.Store.Remote({
+                    url: me.getProcessUrl('trashes'),
+                    fields: [
+                        { name: 'created_at', type: 'int' },
+                        { name: 'size', type: 'int' },
+                    ],
+                    primaryKeys: ['path'],
+                    limit: 50,
+                    remoteSort: true,
+                    sorters: { created_at: 'DESC' },
+                }),
+                columns: [
+                    {
+                        text: (await me.getText('admin.trashes.path')),
+                        dataIndex: 'path',
+                        sortable: true,
+                        minWidth: 300,
+                        flex: 1,
+                        textClass: 'monospace small',
+                    },
+                    {
+                        text: (await me.getText('admin.attachments.size')),
+                        dataIndex: 'size',
+                        sortable: true,
+                        width: 90,
+                        textClass: 'numeric small',
+                        renderer: (value) => {
+                            return Format.size(value);
+                        },
+                    },
+                    {
+                        text: (await me.getText('admin.attachments.created_at')),
+                        dataIndex: 'created_at',
+                        sortable: true,
+                        width: 150,
+                        renderer: (value) => {
+                            return Format.date('Y.m.d(D) H:i', value);
+                        },
+                    },
+                ],
+                listeners: {
+                    openItem: (record) => {
+                        //me.members.add(record.get('member_id'));
+                    },
+                    openMenu: (menu, record, _rowIndex, grid) => {
+                        menu.setTitle(record.get('path'));
+                        menu.add({
+                            text: me.printText('admin.trashes.delete'),
+                            iconClass: 'mi mi-trash',
+                            handler: () => {
+                                me.trashes.delete();
+                            },
+                        });
+                    },
+                    openMenus: (menu, selections) => {
+                        menu.setTitle(Aui.printText('texts.selected_item', {
+                            count: selections.length.toString(),
+                        }));
+                        menu.add({
+                            text: me.printText('admin.trashes.delete'),
+                            iconClass: 'mi mi-trash',
+                            handler: () => {
+                                me.trashes.delete();
+                            },
+                        });
+                    },
+                },
+            }),
         ],
         listeners: {
             render: (tab) => {

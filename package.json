@@ -227,6 +227,27 @@
                 "component_type,component_name,position_type,position_id": "index"
             },
             "comment": "아이모듈 첨부파일 위치"
+        },
+        "trashes": {
+            "columns": {
+                "path": {
+                    "type": "varchar",
+                    "length": 255,
+                    "comment": "파일경로"
+                },
+                "size": {
+                    "type": "bigint",
+                    "comment": "파일크기"
+                },
+                "created_at": {
+                    "type": "int",
+                    "comment": "업로드일자"
+                }
+            },
+            "indexes": {
+                "path": "primary_key"
+            },
+            "comment": "아이모듈 첨부파일 쓰레기파일"
         }
     }
 }

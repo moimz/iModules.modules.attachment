@@ -49,6 +49,24 @@
                 "delete_all_progress": "총 ${current}/${total}개 임시파일 삭제중...",
                 "deleted_all": "총 ${total}개의 임시파일을 성공적으로 삭제하였습니다."
             }
+        },
+        "trashes": {
+            "title": "쓰레기파일관리",
+            "search": "쓰레기파일검색",
+            "path": "쓰레기파일경로",
+            "delete": "쓰레기파일삭제",
+            "delete_all": "검색된 모든 쓰레기파일삭제",
+            "actions": {
+                "search": "데이터베이스에 등록되어 있지 않은 쓰레기 파일을 검색하시겠습니까?<br>모든 첨부파일 폴더를 검색하기 때문에 시간이 다소 소요될 수 있습니다.",
+                "search_start": "쓰레기파일 검색중...",
+                "search_progress": "총 ${current}/${total}개 폴더 검색중...<br>현재검색폴더 : ${folder} (${files}개 파일)",
+                "searched": "쓰레기파일 검색을 완료하였습니다.",
+                "delete": "쓰레기파일을 삭제하시겠습니까?<br>아직 어떤 컴포넌트에서도 사용되고 있지 않지만, 이 파일을 참조하고 있는 객체에 영향을 끼칠 수 있습니다.",
+                "delete_all": "검색된 모든 쓰레기파일을 삭제하시겠습니까?<br>이 작업은 파일갯수에 따라 시간이 다소 소요될 수 있습니다.",
+                "delete_all_start": "파일삭제 준비중...",
+                "delete_all_progress": "총 ${current}/${total}개 쓰레기파일 삭제중...",
+                "deleted_all": "총 ${total}개의 쓰레기파일을 성공적으로 삭제하였습니다."
+            }
         }
     }
 }

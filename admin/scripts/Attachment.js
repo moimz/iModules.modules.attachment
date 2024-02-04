@@ -110,14 +110,14 @@ var modules;
                                         method: 'DELETE',
                                         url: this.getProcessUrl('drafts'),
                                         message: this.printText('admin.drafts.actions.delete_all_start'),
-                                        progress: (progressBar, results) => {
+                                        progress: (progress, results) => {
                                             if (results.end == true) {
-                                                progressBar.setMessage(this.printText('admin.drafts.actions.deleted_all', {
+                                                progress.setMessage(this.printText('admin.drafts.actions.deleted_all', {
                                                     total: Format.number(results.total),
                                                 }));
                                             }
                                             else {
-                                                progressBar.setMessage(this.printText('admin.drafts.actions.delete_all_progress', {
+                                                progress.setMessage(this.printText('admin.drafts.actions.delete_all_progress', {
                                                     current: Format.number(results.current),
                                                     total: Format.number(results.total),
                                                 }));
@@ -127,6 +127,120 @@ var modules;
                                             if (results.success == true) {
                                                 const drafts = Aui.getComponent('drafts');
                                                 await drafts.getStore().reload();
+                                            }
+                                        },
+                                    });
+                                }
+                                else {
+                                    Aui.Message.close();
+                                }
+                            },
+                        });
+                    },
+                };
+                /**
+                 * 쓰레기파일 처리
+                 */
+                trashes = {
+                    /**
+                     * 첨부파일 최상위폴더부터 모든 하위폴더를 검색하여 데이터베이스에 연결되어 있지 않은 파일을 찾는다.
+                     */
+                    search: () => {
+                        Aui.Message.show({
+                            title: Aui.getErrorText('CONFIRM'),
+                            message: this.printText('admin.trashes.actions.search'),
+                            icon: Aui.Message.CONFIRM,
+                            buttons: Aui.Message.OKCANCEL,
+                            handler: (button) => {
+                                if (button.action == 'ok') {
+                                    Aui.Message.progress({
+                                        method: 'POST',
+                                        url: this.getProcessUrl('trashes'),
+                                        message: this.printText('admin.trashes.actions.search_start'),
+                                        progress: (progress, results) => {
+                                            if (results.end == true) {
+                                                progress.setMessage(this.printText('admin.trashes.actions.searched', {
+                                                    total: Format.number(results.total),
+                                                }));
+                                            }
+                                            else {
+                                                progress.setMessage(this.printText('admin.trashes.actions.search_progress', {
+                                                    current: Format.number(results.current),
+                                                    total: Format.number(results.total),
+                                                    folder: results.data?.folder ?? '/',
+                                                    files: results.data?.files.toString() ?? '0',
+                                                }));
+                                            }
+                                        },
+                                        handler: async (_button, results) => {
+                                            if (results.success == true) {
+                                                const drafts = Aui.getComponent('trashes');
+                                                await drafts.getStore().reload();
+                                            }
+                                        },
+                                    });
+                                }
+                                else {
+                                    Aui.Message.close();
+                                }
+                            },
+                        });
+                    },
+                    /**
+                     * 쓰레기파일을 삭제한다.
+                     */
+                    delete: () => {
+                        const trashes = Aui.getComponent('trashes');
+                        const paths = [];
+                        for (const trash of trashes.getSelections()) {
+                            paths.push(trash.get('path'));
+                        }
+                        if (paths.length == 0) {
+                            return;
+                        }
+                        Aui.Message.delete({
+                            url: this.getProcessUrl('trash'),
+                            params: { paths: paths.join(',') },
+                            message: this.printText('admin.trashes.actions.delete'),
+                            handler: async (results) => {
+                                if (results.success == true) {
+                                    trashes.getStore().reload();
+                                }
+                            },
+                        });
+                    },
+                    /**
+                     * 검색된 모든 쓰레기파일을 삭제한다.
+                     */
+                    deleteAll: () => {
+                        Aui.Message.show({
+                            title: Aui.getErrorText('CONFIRM'),
+                            message: this.printText('admin.trashes.actions.delete_all'),
+                            icon: Aui.Message.CONFIRM,
+                            buttons: Aui.Message.DANGERCANCEL,
+                            handler: (button) => {
+                                if (button.action == 'ok') {
+                                    Aui.Message.progress({
+                                        method: 'DELETE',
+                                        url: this.getProcessUrl('trashes'),
+                                        message: this.printText('admin.trashes.actions.delete_all_start'),
+                                        progress: (progress, results) => {
+                                            if (results.end == true) {
+                                                progress.setMessage(this.printText('admin.trashes.actions.deleted_all', {
+                                                    total: Format.number(results.total),
+                                                }));
+                                            }
+                                            else {
+                                                progress.setMessage(this.printText('admin.trashes.actions.delete_all_progress', {
+                                                    current: Format.number(results.current),
+                                                    total: Format.number(results.total),
+                                                }));
+                                            }
+                                        },
+                                        handler: async (_button, results) => {
+                                            if (results.success == true) {
+                                                const trashes = Aui.getComponent('trashes');
+                                                await trashes.getStore().reload();
                                             }
                                         },
                                     });
