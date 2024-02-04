@@ -271,7 +271,7 @@ Admin.ready(async () => {
             }),
             new Aui.Grid.Panel({
                 id: 'trashes',
-                iconClass: 'xi xi-marquee-add',
+                iconClass: 'xi xi-trash',
                 title: (await me.getText('admin.trashes.title')) as string,
                 selection: { selectable: true, display: 'check' },
                 autoLoad: false,
