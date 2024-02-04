@@ -117,19 +117,11 @@ Admin.ready(async () => {
                 ],
                 listeners: {
                     openItem: (record) => {
-                        //me.members.add(record.get('member_id'));
+                        // @todo 파일 다운로드
+                        console.log(record);
                     },
-                    openMenu: (menu, record, _rowIndex, grid) => {
+                    openMenu: (menu, record) => {
                         menu.setTitle(record.get('name'));
-                        /*
-                        menu.add({
-                            text: me.printText('admin.members.edit'),
-                            iconClass: 'xi xi-form-checkout',
-                            handler: () => {
-                                me.members.add(record.get('member_id'));
-                            },
-                        });
-                        */
                     },
                     openMenus: (menu, selections) => {
                         menu.setTitle(
@@ -137,15 +129,8 @@ Admin.ready(async () => {
                                 count: selections.length.toString(),
                             })
                         );
-                        /*
-                        menu.add({
-                            text: me.printText('admin.members.deactive'),
-                            iconClass: 'xi xi-slash-circle',
-                            handler: () => {
-                                me.members.deactive();
-                            },
-                        });
-                        */
+
+                        // @todo 일괄 다운로드
                     },
                 },
             }),
@@ -251,9 +236,10 @@ Admin.ready(async () => {
                 ],
                 listeners: {
                     openItem: (record) => {
-                        //me.members.add(record.get('member_id'));
+                        // @todo 파일 다운로드
+                        console.log(record);
                     },
-                    openMenu: (menu, record, _rowIndex, grid) => {
+                    openMenu: (menu, record) => {
                         menu.setTitle(record.get('name'));
 
                         menu.add({
@@ -278,6 +264,8 @@ Admin.ready(async () => {
                                 me.drafts.delete();
                             },
                         });
+
+                        // @todo 일괄 다운로드
                     },
                 },
             }),
@@ -354,7 +342,7 @@ Admin.ready(async () => {
                         },
                     },
                     {
-                        text: (await me.getText('admin.attachments.created_at')) as string,
+                        text: (await me.getText('admin.trashes.created_at')) as string,
                         dataIndex: 'created_at',
                         sortable: true,
                         width: 150,
@@ -365,9 +353,10 @@ Admin.ready(async () => {
                 ],
                 listeners: {
                     openItem: (record) => {
-                        //me.members.add(record.get('member_id'));
+                        // @todo 파일 다운로드
+                        console.log(record);
                     },
-                    openMenu: (menu, record, _rowIndex, grid) => {
+                    openMenu: (menu, record) => {
                         menu.setTitle(record.get('path'));
 
                         menu.add({
@@ -392,6 +381,8 @@ Admin.ready(async () => {
                                 me.trashes.delete();
                             },
                         });
+
+                        // @todo 일괄 다운로드
                     },
                 },
             }),
