@@ -654,13 +654,13 @@ class Attachment extends \Module
 
             if ($imginfo[0] < $imginfo[1]) {
                 $height = $size;
-                $width = ceil(($height * $imginfo[1]) / $imginfo[0]);
+                $width = ceil(($height * $imginfo[0]) / $imginfo[1]);
             } else {
                 $width = $size;
                 $height = ceil(($width * $imginfo[1]) / $imginfo[0]);
             }
 
-            if (false && $toType == $type && ($imginfo[0] <= $width || $imginfo[1] <= $height)) {
+            if ($toType == $type && ($imginfo[0] <= $width || $imginfo[1] <= $height)) {
                 @copy($imgPath, $thumbPath);
                 if ($delete == true) {
                     @unlink($imgPath);
