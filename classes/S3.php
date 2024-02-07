@@ -10,50 +10,6 @@
  * @modified 2023. 9. 1.
  */
 namespace modules\attachment;
-class S3Object
-{
-    private string $_body;
-    private string $_content_type;
-    private int $_content_length;
-
-    public function __construct(string $body, string $content_type, int $content_length)
-    {
-        $this->_body = $body;
-        $this->_content_type = $content_type;
-        $this->_content_length = $content_length;
-    }
-
-    /**
-     * 파일 byte 를 가져온다.
-     *
-     * @return string $byte
-     */
-    public function getBody(): string
-    {
-        return $this->_body;
-    }
-
-    /**
-     * 파일형식을 가져온다.
-     *
-     * @return string $mime
-     */
-    public function getContentType(): string
-    {
-        return $this->_content_type;
-    }
-
-    /**
-     * 파일크기를 가져온다.
-     *
-     * @return int $size
-     */
-    public function getContentLength(): int
-    {
-        return $this->_content_length;
-    }
-}
-
 class S3
 {
     /**
@@ -273,9 +229,9 @@ class S3
      * S3 에서 파일 콘텐츠를 가져온다.
      *
      * @param string $fileKey S3 파일키 (파일경로)
-     * @return S3Object|bool $byte (false 인 경우 파일을 읽어올 수 없음)
+     * @return \modules\attachment\dtos\S3Object|bool $byte (false 인 경우 파일을 읽어올 수 없음)
      */
-    public function get(string $fileKey): S3Object|bool
+    public function get(string $fileKey): \modules\attachment\dtos\S3Object|bool
     {
         $fileKey = $this->fileKey($fileKey);
         $time = time();
@@ -341,7 +297,7 @@ class S3
         curl_close($curl);
 
         return $cinfo['http_code'] == 200
-            ? new S3Object($body, $cinfo['content_type'], $cinfo['download_content_length'])
+            ? new \modules\attachment\dtos\S3Object($body, $cinfo['content_type'], $cinfo['download_content_length'])
             : false;
     }
 
