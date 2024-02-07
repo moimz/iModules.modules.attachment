@@ -10,6 +10,6 @@
     "homepage": "https://www.imodules.io",
     "language": "ko",
     "styles": [
-        "/styles/style.scss"
+        "/styles/style.css"
     ]
 }

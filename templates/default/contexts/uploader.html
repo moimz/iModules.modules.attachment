@@ -1,0 +1,20 @@
+<?php
+/**
+ * 이 파일은 아이모듈 첨부파일모듈의 일부입니다. (https://www.imodules.io)
+ *
+ * 첨부파일 기본 템플릿 - 업로더 컨텍스트
+ *
+ * @file /modules/attachment/templates/default/contexts/uploader.html
+ * @author Arzz (arzz@arzz.com)
+ * @license MIT License
+ * @modified 2024. 2. 6.
+ *
+ * @var \modules\attachment\Attachment $me
+ * @var Template $template 템플릿
+ */
+if (defined('__IM__') == false) {
+    exit();
+}
+?>
+<button type="button" data-action="select"><i class="mi mi-upload"></i><span><?php echo $me->getText('buttons.select'); ?></button>
+<ul data-role="files"></ul>
