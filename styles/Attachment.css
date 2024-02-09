@@ -6,7 +6,7 @@
  * @file /styles/Attachment.css
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2023. 4. 10.
+ * @modified 2024. 2. 9.
  */
 div[data-module='attachment'] {
     i[data-type][data-extension] {
@@ -105,6 +105,43 @@ div[data-module='attachment'] {
         }
 
         > small[data-role='size'] {
+        }
+
+        > a[data-action='download'],
+        > button[data-action='insert'] {
+            visibility: hidden;
+        }
+
+        &[data-status='COMPLETE'] {
+            > a[data-action='download'] {
+                visibility: visible;
+            }
+        }
+    }
+
+    input[type='file'] {
+        display: none;
+    }
+}
+
+div[data-role='module'][data-module='attachment'] {
+    > div[data-role='uploader'] {
+        &[data-render='false'] {
+            display: none;
+        }
+
+        &[data-editor-id] {
+            div[data-module='attachment'][data-role='file'] {
+                > a[data-action='download'] {
+                    visibility: hidden;
+                }
+
+                &[data-status='COMPLETE'] {
+                    > button[data-action='insert'] {
+                        visibility: visible;
+                    }
+                }
+            }
         }
     }
 }

@@ -6,28 +6,57 @@
  * @file /modules/attachment/scripts/Attachment.ts
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2023. 6. 10.
+ * @modified 2024. 2. 9.
  */
 namespace modules {
     export namespace attachment {
+        /**
+         * 첨부파일에서 사용하는 File 구조체를 정의한다.
+         */
+        export interface File {
+            id: string;
+            name: string;
+            type: string;
+            mime: string;
+            extension: string;
+            size: number;
+            view: string;
+            download: string;
+            thumbnail: string;
+        }
+
         export class Attachment extends Module {
             static Uploaders: WeakMap<HTMLElement, modules.attachment.Uploader> = new WeakMap();
 
             /**
-             * 업로더를 설정한다.
+             * 모듈의 DOM 이벤트를 초기화한다.
+             * 해당 DOM 내부에 업로더 객체가 존재할 경우 업로더를 활성화한다.
              *
-             * @param {Dom} $dom - 업로더가 위치한 DOM 객체
-             * @param {modules.attachment.Uploader.Properties} properties - 업로더 설정
-             * @return {modules.attachment.Uploader} uploader - 업로더 객체
+             * @param {Dom} $dom - 모듈 DOM 객체
              */
-            set($dom: Dom, properties: modules.attachment.Uploader.Properties): modules.attachment.Uploader {
-                if (modules.attachment.Attachment.Uploaders.has($dom.getEl()) == true) {
-                    return modules.attachment.Attachment.Uploaders.get($dom.getEl());
-                } else {
-                    const uploader = new modules.attachment.Uploader($dom, properties);
-                    modules.attachment.Attachment.Uploaders.set($dom.getEl(), uploader);
-                    return uploader;
+            init($dom: Dom) {
+                if (Html.get('div[data-role=uploader][data-render=false]', $dom).getEl() !== null) {
+                    this.getUploader(Html.get('div[data-role=uploader][data-render=false]', $dom));
                 }
+            }
+
+            /**
+             * 업로더영역 DOM 객체를 통해 업로더를 가져온다.
+             *
+             * @param {Dom} $uploader - 업로더영역 DOM 객체
+             * @return {modules.attachment.Uploader} uploader - 업로더 클래스
+             */
+            getUploader($uploader: Dom): modules.attachment.Uploader {
+                const dom = $uploader.getEl();
+                if (dom instanceof HTMLDivElement) {
+                    if (modules.attachment.Attachment.Uploaders.has(dom) == false) {
+                        modules.attachment.Attachment.Uploaders.set(dom, new modules.attachment.Uploader($uploader));
+                    }
+
+                    return modules.attachment.Attachment.Uploaders.get(dom);
+                }
+
+                return null;
             }
 
             /**
@@ -46,26 +75,13 @@ namespace modules {
             }
         }
 
-        /**
-         * 첨부파일에서 사용하는 File 구조체를 정의한다.
-         */
-        export interface File {
-            id: string;
-            name: string;
-            type: string;
-            mime: string;
-            extension: string;
-            size: number;
-            view: string;
-            download: string;
-            thumbnail: string;
-        }
-
-        /**
-         * 업로더 클래스를 정의한다.
-         */
         export namespace Uploader {
             export interface Properties {
+                /**
+                 * @type {string} id - 업로더고유값
+                 */
+                id?: string;
+
                 /**
                  * @type {string} accept - 업로드 허용파일
                  */
@@ -75,6 +91,11 @@ namespace modules {
                  * @type {boolean} multiple - 다중파일 선택여부
                  */
                 multiple?: boolean;
+
+                /**
+                 * @type {modules.wysiwyg.Editor} editor - 업로더가 에디터와 연결되어 있는 경우, 연결된 에디터
+                 */
+                editor?: modules.wysiwyg.Editor;
 
                 /**
                  * @type {Object} listeners - 이벤트리스너
@@ -96,9 +117,12 @@ namespace modules {
         }
 
         export class Uploader {
+            id: string;
             $dom: Dom;
             $input: Dom;
             index: number = 0;
+            name: string = null;
+            editor: modules.wysiwyg.Editor = null;
             files: modules.attachment.Uploader.File[] = [];
             count: { uploaded: number; total: number } = { uploaded: 0, total: 0 };
             size: { uploaded: number; total: number } = { uploaded: 0, total: 0 };
@@ -112,24 +136,29 @@ namespace modules {
              * 업로더 클래스를 정의한다.
              *
              * @param {Dom} $dom - 업로더 DOM 객체
-             * @param {modules.attachment.Uploader.Properties} properties - 설정
+             * @param {modules.attachment.Uploader.Properties} properties - 설정 (DOM 객체에 설정된 값보다 우선시 됩니다.)
              */
-            constructor($dom: Dom, properties: modules.attachment.Uploader.Properties) {
+            constructor($dom: Dom, properties: modules.attachment.Uploader.Properties = null) {
                 this.$dom = $dom;
 
-                this.accept = properties.accept ?? '*';
-                this.multiple = properties.multiple !== false;
+                this.id = properties?.id ?? this.$dom?.getAttr('data-id');
+                this.name = this.$dom.getAttr('data-name') ?? null;
+                this.accept = properties?.accept ?? '*';
+                this.multiple = properties?.multiple !== false;
 
-                if (properties.listeners !== undefined) {
-                    for (const name in properties.listeners) {
-                        this.addEvent(name, properties.listeners[name]);
-                    }
+                for (const name in properties?.listeners ?? {}) {
+                    this.addEvent(name, properties.listeners[name]);
+                }
+
+                this.editor = properties?.editor ?? null;
+                if (this.editor !== null) {
+                    this.$dom.setAttr('data-editor-id', this.editor.getId());
                 }
 
                 this.$dom.append(this.$getInput());
 
                 this.$getInput().on('change', (e: Event & { target: HTMLInputElement }) => {
-                    this.#add(e.target.files);
+                    this.add(e.target.files);
                 });
                 const $button = Html.get('button[data-action=select]', this.$dom);
                 if ($button.getEl() !== null) {
@@ -137,6 +166,31 @@ namespace modules {
                         this.select();
                     });
                 }
+
+                if (this.name !== null) {
+                    const values = JSON.parse(
+                        Html.get('input[name="' + this.name + '"]', this.$dom).getValue() ?? null
+                    );
+
+                    if (values !== null) {
+                        this.setValue(values);
+                    }
+                }
+
+                if (this.$dom.getAttr('data-render') == 'false') {
+                    this.$dom.removeAttr('data-render');
+                }
+            }
+
+            /**
+             * 업로더와 에디터를 연결한다.
+             * 에디터와 연결될 경우 파일목록에서 다운로드 버튼을 대체하여 에디터 삽입 버튼이 추가된다.
+             *
+             * @param {modules.wysiwyg.Editor} editor - 연결할 에디터
+             */
+            setEditor(editor: modules.wysiwyg.Editor): void {
+                this.editor = editor;
+                this.$dom.setAttr('data-editor-id', this.editor.getId());
             }
 
             /**
@@ -228,8 +282,10 @@ namespace modules {
              * 선택된 파일을 대기열에 추가한다.
              *
              * @param {FileList} files - 추가할 파일객체
+             * @return {FileList} modules.attachment.Uploader.File[] - 추가된 파일객체
              */
-            #add(files: FileList): void {
+            add(files: FileList): modules.attachment.Uploader.File[] {
+                const added = [];
                 for (const file of files) {
                     if (file.size == 0) {
                         continue;
@@ -241,6 +297,11 @@ namespace modules {
                         }
                     }
 
+                    /**
+                     * 클립보드 데이터인 경우 파일명이 존재하지 않으므로, 가상의 파일명을 생성한다.
+                     */
+                    const name = file.name ?? 'clipboard.' + (file.type.split('/')[1] ?? 'png');
+
                     const draft: modules.attachment.Uploader.File = {
                         index: this.getIndex(),
                         status: 'WAITING',
@@ -248,10 +309,10 @@ namespace modules {
                         uploaded: 0,
                         attachment: {
                             id: null,
-                            name: Format.normalizer(file.name),
+                            name: Format.normalizer(name),
                             type: this.getType(file.type),
                             mime: file.type,
-                            extension: this.getExtension(file.name),
+                            extension: this.getExtension(name),
                             size: file.size,
                             view: null,
                             download: null,
@@ -261,10 +322,11 @@ namespace modules {
                     };
 
                     if (['image', 'svg', 'icon'].includes(draft.attachment.type) !== false) {
-                        draft.attachment.thumbnail = URL.createObjectURL(draft.file);
+                        draft.attachment.thumbnail = draft.attachment.view = URL.createObjectURL(draft.file);
                     }
 
                     this.files.push(draft);
+                    added.push(draft);
                     this.#print(draft);
 
                     this.fireEvent('add', [draft, this]);
@@ -277,6 +339,8 @@ namespace modules {
                 if (this.count.total > this.count.uploaded) {
                     this.start();
                 }
+
+                return added;
             }
 
             /**
@@ -605,6 +669,13 @@ namespace modules {
                 $download.html('<i></i><span> ' + Modules.get('attachment').printText('buttons.download') + '</span>');
                 $item.append($download);
 
+                const $insert = Html.create('button', { type: 'button', 'data-action': 'insert' });
+                $insert.html('<i></i><span> ' + Modules.get('attachment').printText('buttons.insert') + '</span>');
+                $insert.on('click', () => {
+                    this.editor?.insertFile(file);
+                });
+                $item.append($insert);
+
                 const $delete = Html.create('button', { type: 'button', 'data-action': 'delete' });
                 $delete.html('<i></i><span> ' + Modules.get('attachment').printText('buttons.delete') + '</span>');
                 $delete.on('click', () => {
@@ -694,6 +765,8 @@ namespace modules {
                     $name.html(Format.substring(file.attachment.name, [length, 6]));
                     --length;
                 }
+
+                this.fireEvent('update', [file, this]);
             }
 
             /**

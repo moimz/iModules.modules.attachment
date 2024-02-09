@@ -35,6 +35,18 @@ class Attachment extends \Module
     }
 
     /**
+     * 업로더 클래스를 가져온다.
+     *
+     * @param string $id 업로더 고유값 (NULL 인 경우 신규로 생성하고, 값이 존재하는 경우 기존에 첨부된 파일을 가져온다.)
+     * @return \modules\attachment\Uploader $uploader
+     */
+    public function getUploader(?string $id = null): \modules\attachment\Uploader
+    {
+        $uploader = new \modules\attachment\Uploader($id);
+        return $uploader;
+    }
+
+    /**
      * 첨부파일 임시저장폴더를 가져온다.
      *
      * @return string $dir 폴더

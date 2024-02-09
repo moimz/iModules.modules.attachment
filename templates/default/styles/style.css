@@ -6,7 +6,7 @@
  * @file /modules/attachment/templates/default/styles/style.css
  * @author Arzz (arzz@arzz.com)
  * @license MIT License
- * @modified 2024. 2. 6.
+ * @modified 2024. 2. 9.
  */
 div[data-role='module'][data-module='attachment'][data-template='default'] {
     > div[data-role='uploader'] {
@@ -145,7 +145,7 @@ div[data-role='module'][data-module='attachment'][data-template='default'] {
                         font-variant-numeric: tabular-nums;
                     }
 
-                    > button {
+                    > button[data-action='delete'] {
                         position: absolute;
                         top: 0;
                         right: 0;
@@ -169,7 +169,8 @@ div[data-role='module'][data-module='attachment'][data-template='default'] {
                         }
                     }
 
-                    > a[data-action='download'] {
+                    > a[data-action='download'],
+                    > button[data-action='insert'] {
                         display: none;
                         position: absolute;
                         top: 0;
@@ -179,35 +180,48 @@ div[data-role='module'][data-module='attachment'][data-template='default'] {
                         width: 100%;
                         height: 0;
                         padding-bottom: 100%;
+                        border: 0;
 
                         > i {
-                            position: absolute;
-                            display: block;
-                            width: 30px;
-                            height: 30px;
-                            left: calc(50% - 15px);
-                            top: calc(50% - 15px);
-                            font-family: 'moimz';
-                            font-style: normal;
-                            font-size: 24px;
+                            width: 100%;
+                            height: 20px;
                             line-height: 30px;
+                            position: absolute;
+                            left: 0;
+                            top: calc(50% - 20px);
+                            font-style: normal;
+                            font-family: moimz;
+                            font-size: 24px;
+                            text-align: center;
                             color: #fff;
                             text-align: center;
+                        }
 
-                            &::before {
-                                content: '\ec11';
-                            }
+                        &[data-action='download'] > i::before {
+                            content: '\eb00';
+                        }
+
+                        &[data-action='insert'] > i::before {
+                            content: '\eb00';
                         }
 
                         > span {
-                            display: none;
+                            position: absolute;
+                            top: calc(50% + 10px);
+                            left: 0;
+                            width: 100%;
+                            height: 20px;
+                            line-height: 20px;
+                            color: #fff;
+                            font-size: 14px;
                         }
                     }
 
                     &[data-status='COMPLETE'] {
-                        &:hover&:not(:has(button:hover)) {
-                            > a[data-action='download'] {
-                                display: block;
+                        &:hover&:not(:has(button[data-action='delete']:hover)) {
+                            > a[data-action='download'],
+                            > button[data-action='insert'] {
+                                display: flex;
                             }
                         }
                     }

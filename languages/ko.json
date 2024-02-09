@@ -1,6 +1,8 @@
 {
     "buttons": {
+        "select": "파일선택",
         "download": "다운로드",
+        "insert": "본문삽입",
         "delete": "삭제"
     },
     "errors": {
