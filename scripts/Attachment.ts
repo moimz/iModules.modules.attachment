@@ -766,7 +766,18 @@ namespace modules {
                     --length;
                 }
 
+                this.#updateValue();
+
                 this.fireEvent('update', [file, this]);
+            }
+
+            /**
+             * 입력폼의 데이터를 갱신한다.
+             */
+            #updateValue() {
+                if (this.name !== null && Html.get('input[name="' + this.name + '"]', this.$dom).getEl() !== null) {
+                    Html.get('input[name="' + this.name + '"]', this.$dom).setValue(JSON.stringify(this.getValue()));
+                }
             }
 
             /**
@@ -798,6 +809,15 @@ namespace modules {
             #complete(): void {
                 this.uploading = false;
                 this.fireEvent('complete', [this]);
+            }
+
+            /**
+             * 업로드가 진행중인지 확인한다.
+             *
+             * @return {boolean} is_uploading
+             */
+            isUploading(): boolean {
+                return this.uploading;
             }
 
             /**

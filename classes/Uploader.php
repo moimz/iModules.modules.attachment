@@ -62,6 +62,16 @@ class Uploader
     }
 
     /**
+     * 업로더 입력폼의 이름을 가져온다.
+     *
+     * @return string $name 입력폼이름
+     */
+    public function getName(): string
+    {
+        return $this->_name;
+    }
+
+    /**
      * 업로더 입력폼의 이름을 설정한다.
      *
      * @param string $name 입력폼이름
@@ -148,7 +158,13 @@ class Uploader
     {
         $template = $this->getTemplate();
 
-        $value = \Format::string(json_encode($this->_values), 'input');
+        $input = \Html::element('input', [
+            'type' => 'hidden',
+            'data-role' => 'uploader',
+            'data-id' => $this->_id,
+            'name' => $this->_name,
+            'value' => \Format::string(json_encode($this->_values), 'input'),
+        ]);
 
         return \Html::element(
             'div',
@@ -165,10 +181,7 @@ class Uploader
                     'data-name' => $this->_name,
                     'data-render' => $this->_render == true ? 'true' : 'false',
                 ],
-                $template->getContext(
-                    'uploader',
-                    '<input type="hidden" name="' . $this->_name . '" value="' . $value . '">'
-                )
+                $template->getContext('uploader', $input)
             )
         );
     }

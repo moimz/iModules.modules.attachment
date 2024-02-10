@@ -614,7 +614,16 @@ var modules;
                     $name.html(Format.substring(file.attachment.name, [length, 6]));
                     --length;
                 }
+                this.#updateValue();
                 this.fireEvent('update', [file, this]);
+            }
+            /**
+             * 입력폼의 데이터를 갱신한다.
+             */
+            #updateValue() {
+                if (this.name !== null && Html.get('input[name="' + this.name + '"]', this.$dom).getEl() !== null) {
+                    Html.get('input[name="' + this.name + '"]', this.$dom).setValue(JSON.stringify(this.getValue()));
+                }
             }
             /**
              * 프로그래스바를 업데이트한다.
@@ -638,6 +647,14 @@ var modules;
             #complete() {
                 this.uploading = false;
                 this.fireEvent('complete', [this]);
+            }
+            /**
+             * 업로드가 진행중인지 확인한다.
+             *
+             * @return {boolean} is_uploading
+             */
+            isUploading() {
+                return this.uploading;
             }
             /**
              * 이벤트리스너를 등록한다.
