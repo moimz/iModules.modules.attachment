@@ -216,6 +216,15 @@ Admin.ready(async () => {
                         },
                     },
                     {
+                        text: (await me.getText('admin.drafts.size')) as string,
+                        dataIndex: 'realsize',
+                        width: 90,
+                        textClass: 'numeric small',
+                        renderer: (value) => {
+                            return Format.size(value);
+                        },
+                    },
+                    {
                         text: (await me.getText('admin.attachments.created_at')) as string,
                         dataIndex: 'created_at',
                         sortable: true,

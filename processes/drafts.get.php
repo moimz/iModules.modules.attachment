@@ -2,12 +2,12 @@
 /**
  * 이 파일은 아이모듈 첨부파일모듈의 일부입니다. (https://www.imodules.io)
  *
- * 첨부파일 정보를 가져온다.
+ * 임시파일 정보를 가져온다.
  *
- * @file /modules/attachment/processes/attachment.get.php
+ * @file /modules/attachment/processes/drafts.get.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2023. 4. 10.
+ * @modified 2024. 2. 10.
  *
  * @var \modules\attachment\Attachment $me
  */
@@ -59,6 +59,7 @@ foreach ($records as &$record) {
     $record = $attachment->getJson();
     $record->draft_id = $record->id;
     $record->path = str_replace(Configs::attachment(), '', $attachment->getPath());
+    $record->realsize = filesize($attachment->getPath());
     unset($record->id);
 }
 
