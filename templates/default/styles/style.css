@@ -65,8 +65,7 @@ div[data-role='module'][data-module='attachment'][data-template='default'] {
 
                     > div {
                         width: 100%;
-                        height: 0;
-                        padding-bottom: calc(100% - 2px);
+                        aspect-ratio: 1;
                         border: 1px solid var(--color-background-100);
                         box-sizing: border-box;
 
@@ -178,11 +177,11 @@ div[data-role='module'][data-module='attachment'][data-template='default'] {
                         z-index: 1;
                         background: rgba(0, 0, 0, 0.7);
                         width: 100%;
-                        height: 0;
-                        padding-bottom: 100%;
+                        aspect-ratio: 1;
                         border: 0;
 
                         > i {
+                            display: block;
                             width: 100%;
                             height: 20px;
                             line-height: 30px;
@@ -198,7 +197,7 @@ div[data-role='module'][data-module='attachment'][data-template='default'] {
                         }
 
                         &[data-action='download'] > i::before {
-                            content: '\eb00';
+                            content: '\ec11';
                         }
 
                         &[data-action='insert'] > i::before {
@@ -206,12 +205,14 @@ div[data-role='module'][data-module='attachment'][data-template='default'] {
                         }
 
                         > span {
+                            display: block;
                             position: absolute;
                             top: calc(50% + 10px);
                             left: 0;
                             width: 100%;
                             height: 20px;
                             line-height: 20px;
+                            text-align: center;
                             color: #fff;
                             font-size: 14px;
                         }
@@ -226,17 +227,8 @@ div[data-role='module'][data-module='attachment'][data-template='default'] {
                         }
                     }
 
-                    &[data-status='COMPLETE'],
-                    &[data-status='LOADING'] {
-                        > div[data-role='preview'] {
-                            > progress {
-                                display: none;
-                            }
-                        }
-                    }
-
                     &[data-status='WAITING'] {
-                        > div[data-role='preview'] {
+                        > div {
                             > progress {
                                 &::-webkit-progress-value {
                                     width: 20%;
@@ -255,6 +247,15 @@ div[data-role='module'][data-module='attachment'][data-template='default'] {
                                     border-radius: 3px;
                                     content: ' ';
                                 }
+                            }
+                        }
+                    }
+
+                    &[data-status='COMPLETE'],
+                    &[data-status='LOADING'] {
+                        > div {
+                            > progress {
+                                display: none;
                             }
                         }
                     }

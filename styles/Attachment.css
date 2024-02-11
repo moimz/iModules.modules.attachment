@@ -67,7 +67,7 @@ div[data-module='attachment'] {
     }
 
     &[data-role='file'] {
-        > div[data-role='preview'] {
+        > div {
             position: relative;
 
             > i {
