@@ -8,7 +8,8 @@
  * @license MIT License
  * @modified 2024. 2. 9.
  */
-div[data-module='attachment'] {
+div[data-module='attachment'],
+a[data-module='attachment'] {
     i[data-type][data-extension] {
         display: inline-block;
         vertical-align: middle;
