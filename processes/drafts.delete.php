@@ -7,7 +7,7 @@
  * @file /modules/attachment/processes/drafts.delete.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 2. 4.
+ * @modified 2024. 2. 14.
  *
  * @var \modules\attachment\Attachment $me
  */
@@ -33,10 +33,14 @@ $drafts = $me
 
 $progress = new Progress(count($drafts));
 foreach ($drafts as $index => $draft) {
-    $removed =
-        File::remove(Configs::attachment() . '/' . $draft->path) &&
-        File::remove(Configs::attachment() . '/' . $draft->path . '.view') &&
-        File::remove(Configs::attachment() . '/' . $draft->path . '.thumbnail');
+    if (strpos($draft->path, 'drafts') === 0) {
+        $removed =
+            File::remove(Configs::attachment() . '/' . $draft->path) &&
+            File::remove(Configs::attachment() . '/' . $draft->path . '.view') &&
+            File::remove(Configs::attachment() . '/' . $draft->path . '.thumbnail');
+    } else {
+        $removed = true;
+    }
 
     if ($removed == true) {
         $me->db()

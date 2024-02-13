@@ -7,7 +7,7 @@
  * @file /modules/attachment/processes/draft.delete.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 1. 26.
+ * @modified 2024. 2. 14.
  *
  * @var \modules\attachment\Attachment $me
  */
@@ -38,10 +38,14 @@ foreach ($draft_ids as $draft_id) {
         continue;
     }
 
-    $removed =
-        File::remove(Configs::attachment() . '/' . $draft->path) &&
-        File::remove(Configs::attachment() . '/' . $draft->path . '.view') &&
-        File::remove(Configs::attachment() . '/' . $draft->path . '.thumbnail');
+    if (strpos($draft->path, 'drafts') === 0) {
+        $removed =
+            File::remove(Configs::attachment() . '/' . $draft->path) &&
+            File::remove(Configs::attachment() . '/' . $draft->path . '.view') &&
+            File::remove(Configs::attachment() . '/' . $draft->path . '.thumbnail');
+    } else {
+        $removed = true;
+    }
 
     if ($removed == true) {
         $me->db()
