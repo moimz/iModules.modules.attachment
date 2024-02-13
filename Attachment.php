@@ -619,6 +619,38 @@ class Attachment extends \Module
     }
 
     /**
+     * 기존 첨부파일로부터 임시파일을 생성한다.
+     *
+     * @param string $attachment_id 첨부파일고유값
+     * @return string|bool $draft_id 임시파일고유값
+     */
+    public function createDraftByAttachment(string $attachment_id): string|bool
+    {
+        $attachment = $this->getAttachment($attachment_id);
+        if ($attachment === null) {
+            return false;
+        }
+
+        $draft_id = $this->createDraftId($attachment->getName());
+        $this->db()
+            ->insert($this->table('drafts'), [
+                'draft_id' => $draft_id,
+                'hash' => $attachment->getHash(),
+                'name' => $attachment->getName(),
+                'path' => $attachment->getPath(false),
+                'type' => $attachment->getType(),
+                'mime' => $attachment->getMime(),
+                'extension' => $attachment->getExtension(),
+                'size' => $attachment->getSize(),
+                'created_at' => time(),
+                'expired_at' => time() + 60 * 60 * 24,
+            ])
+            ->execute();
+
+        return $draft_id;
+    }
+
+    /**
      * 썸네일을 생성한다.
      *
      * @param string $imgPath 썸네일을 생성할 대상 이미지 경로
