@@ -7,7 +7,7 @@
  * @file /modules/attachment/classes/Uploader.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 2. 9.
+ * @modified 2024. 2. 14.
  */
 namespace modules\attachment;
 class Uploader
@@ -111,18 +111,6 @@ class Uploader
         } else {
             return new \Template($mAttachment, $mAttachment->getConfigs('template'));
         }
-    }
-
-    /**
-     * 기존에 첨부된 파일을 불러올 주소를 지정한다.
-     *
-     * @param string $url 주소
-     * @return \modules\attachment\Uploader $this
-     */
-    public function setUrl(string $url): \modules\attachment\Uploader
-    {
-        $this->_url = $url;
-        return $this;
     }
 
     /**
