@@ -8,7 +8,7 @@
  * @file /modules/attachment/Attachment.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 1. 29.
+ * @modified 2024. 2. 11.
  */
 namespace modules\attachment;
 class Attachment extends \Module
@@ -301,9 +301,9 @@ class Attachment extends \Module
      * 파일을 출판한다.
      *
      * @param ?string $attachment_id 파일고유값
-     * @param \Component $component 첨부한 컴포넌트객체 또는 [컴포넌트타입, 컴포넌트명]
-     * @param string $position_type 업로드위치
-     * @param string|int $position_id 업로드고유값
+     * @param \Component $component 첨부한 컴포넌트객체
+     * @param string $position_type 업로드위치종류
+     * @param string|int $position_id 업로드위치고유값
      * @param bool $replacement 대치여부 (기본값 false)
      * @return bool $success
      */
@@ -417,9 +417,9 @@ class Attachment extends \Module
      * 다중파일을 출판한다.
      *
      * @param string[] $attachment_ids 파일고유값
-     * @param \Component $component 첨부한 컴포넌트객체 또는 [컴포넌트타입, 컴포넌트명]
-     * @param string $position_type 업로드위치
-     * @param string|int $position_id 업로드고유값
+     * @param \Component $component 첨부한 컴포넌트객체
+     * @param string $position_type 업로드위치종류
+     * @param string|int $position_id 업로드위치고유값
      * @param bool $replacement 대치여부 (기본값 true)
      * @return bool $success
      */
@@ -679,6 +679,9 @@ class Attachment extends \Module
                 }
                 return true;
             }
+
+            $width = min($imginfo[0], $width);
+            $height = min($imginfo[1], $height);
 
             $thumb = @imageCreateTrueColor($width, $height);
 
