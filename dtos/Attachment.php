@@ -245,9 +245,15 @@ class Attachment
      *
      * @return string $path
      */
-    public function getPath(): string
+    public function getPath(bool $is_full_path = true): string
     {
-        return \Configs::attachment() . '/' . $this->_path;
+        $path = '';
+        if ($is_full_path == true) {
+            $path .= \Configs::attachment() . '/';
+        }
+        $path .= $this->_path;
+
+        return $path;
     }
 
     /**
@@ -417,9 +423,10 @@ class Attachment
      * 파일 URL 을 가져온다.
      *
      * @param ?string $type URL종류 (thumbnail : 이미지썸네일, view : 이미지보기, origin : 원본, download : 다운로드, NULL인 경우 파일 종류에 따라 자동으로 선택)
+     * @param bool $is_full_url 도메인을 포함한 전체 URL 을 가져올지 여부
      * @return string $url
      */
-    public function getUrl(?string $type = null): string
+    public function getUrl(?string $type = null, bool $is_full_url = false): string
     {
         if ($type === null) {
             if (in_array($this->_type, ['image', 'text']) == true) {
@@ -435,18 +442,14 @@ class Attachment
             $name = $this->_name;
         }
         $route = '/files/' . $type . '/' . $this->_id . '/' . urlencode($name);
-        return \Configs::dir() . (\Domains::has()?->isRewrite() == true ? $route : '/?route=' . $route);
-    }
 
-    /**
-     * 도메인을 포함한 파일 URL 을 가져온다.
-     *
-     * @param ?string $type URL종류 (thumbnail : 이미지썸네일, view : 이미지보기, origin : 원본, download : 다운로드, NULL인 경우 파일 종류에 따라 자동으로 선택)
-     * @return string $url
-     */
-    public function getFullUrl(?string $type = null): string
-    {
-        return \Domains::get()->getUrl() . $this->getUrl($type);
+        $url = '';
+        if ($is_full_url === true) {
+            $url .= \Domains::get()->getUrl();
+        }
+        $url .= \Configs::dir() . (\Domains::has()?->isRewrite() == true ? $route : '/?route=' . $route);
+
+        return $url;
     }
 
     /**
