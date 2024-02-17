@@ -15,6 +15,8 @@ if (defined('__IM_PROCESS__') == false) {
     exit();
 }
 
+iModules::session_stop();
+
 $draft_id = $path;
 $draft = $me
     ->db()
