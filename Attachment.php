@@ -298,14 +298,112 @@ class Attachment extends \Module
     }
 
     /**
+     * 출판된 파일의 출판위치를 이동하거나, 출판한다.
+     *
+     * @param ?string $attachment_id 파일고유값
+     * @param \Component $component 이동할 컴포넌트객체
+     * @param string $position_type 이동할 업로드위치종류
+     * @param string|int $position_id 이동할 업로드위치고유값
+     * @param bool $replacement 대치여부 (기본값 false)
+     * @return bool $success
+     */
+    public function moveFile(
+        ?string $attachment_id,
+        \Component $component,
+        string $position_type,
+        string|int $position_id,
+        bool $replacement = false
+    ): bool|string {
+        if ($attachment_id === null) {
+            return true;
+        }
+
+        $attachment = $this->getAttachment($attachment_id);
+        if ($attachment === null) {
+            return false;
+        }
+
+        if ($attachment->isPublished() == false) {
+            $this->publishFile($attachment_id, $component, $position_type, $position_id);
+        } else {
+            $this->db()
+                ->update($this->table('attachments'), [
+                    'component_type' => $component->getType(),
+                    'component_name' => $component->getName(),
+                    'position_type' => $position_type,
+                    'position_id' => $position_id,
+                ])
+                ->where('attachment_id', $attachment_id)
+                ->execute();
+        }
+
+        if ($replacement == true) {
+            $deleteFiles = $this->db()
+                ->select(['attachment_id'])
+                ->from($this->table('attachments'))
+                ->where('component_type', $component->getType())
+                ->where('component_name', $component->getName())
+                ->where('position_type', $position_type)
+                ->where('position_id', $position_id)
+                ->where('attachment_id', $attachment_id, '!=')
+                ->get('attachment_id');
+            $this->deleteFiles($deleteFiles);
+        }
+
+        unset(self::$_attachments[$attachment_id]);
+
+        return true;
+    }
+
+    /**
+     * 다중파일의 출판위치를 이동하거나 출판한다.
+     *
+     * @param string[] $attachment_ids 파일고유값
+     * @param \Component $component 첨부한 컴포넌트객체
+     * @param string $position_type 업로드위치종류
+     * @param string|int $position_id 업로드위치고유값
+     * @param bool $replacement 대치여부 (기본값 true)
+     * @return bool $success
+     */
+    public function moveFiles(
+        string|array $attachment_ids,
+        \Component $component,
+        string $position_type,
+        string|int $position_id,
+        bool $replacement = true
+    ): bool {
+        $success = true;
+        foreach ($attachment_ids as $attachment_id) {
+            $success = $success && $this->moveFile($attachment_id, $component, $position_type, $position_id);
+        }
+
+        if ($success === true && $replacement === true) {
+            $deleteFiles = $this->db()
+                ->select(['attachment_id'])
+                ->from($this->table('attachments'))
+                ->where('component_type', $component->getType())
+                ->where('component_name', $component->getName())
+                ->where('position_type', $position_type)
+                ->where('position_id', $position_id);
+            if (count($attachment_ids) > 0) {
+                $deleteFiles->where('attachment_id', $attachment_ids, 'NOT IN');
+            }
+            $deleteFiles = $deleteFiles->get('attachment_id');
+            $this->deleteFiles($deleteFiles);
+        }
+
+        return $success;
+    }
+
+    /**
      * 파일을 출판한다.
      *
      * @param ?string $attachment_id 파일고유값
      * @param \Component $component 첨부한 컴포넌트객체
      * @param string $position_type 업로드위치종류
      * @param string|int $position_id 업로드위치고유값
-     * @param bool $replacement 대치여부 (기본값 false)
-     * @return bool $success
+     * @param bool $replacement 대치여부 (기본값 false),
+     * @return bool|string $success (이미 출판된 파일의 중복 출판으로 인해 파일고유값이 변경되었을 경우 해당 파일고유값)
      */
     public function publishFile(
         ?string $attachment_id,
@@ -313,7 +411,8 @@ class Attachment extends \Module
         string $position_type,
         string|int $position_id,
         bool $replacement = false
-    ): bool {
+    ): bool|string {
+        $is_copied = false;
         if ($attachment_id === null) {
             if ($replacement == true) {
                 $deleteFiles = $this->db()
@@ -384,15 +483,27 @@ class Attachment extends \Module
                 ->where('draft_id', $attachment_id)
                 ->execute();
         } else {
-            $this->db()
-                ->update($this->table('attachments'), [
-                    'component_type' => $component->getType(),
-                    'component_name' => $component->getName(),
-                    'position_type' => $position_type,
-                    'position_id' => $position_id,
-                ])
-                ->where('attachment_id', $attachment_id)
-                ->execute();
+            if (
+                $attachment->getComponent()->getType() != $component->getType() ||
+                $attachment->getComponent()->getName() != $component->getName() ||
+                $attachment->getPositionType() != $position_type ||
+                $attachment->getPositionId() != $position_id
+            ) {
+                $is_copied = true;
+                $attachment_id = $this->createDraftId($attachment->getName());
+                $this->db()
+                    ->insert($this->table('attachments'), [
+                        'attachment_id' => $attachment_id,
+                        'hash' => $attachment->getHash(),
+                        'component_type' => $component->getType(),
+                        'component_name' => $component->getName(),
+                        'position_type' => $position_type,
+                        'position_id' => $position_id,
+                        'name' => $attachment->getName(),
+                        'created_at' => time(),
+                    ])
+                    ->execute();
+            }
         }
 
         if ($replacement == true) {
@@ -410,7 +521,7 @@ class Attachment extends \Module
 
         unset(self::$_attachments[$attachment_id]);
 
-        return true;
+        return $is_copied === true ? $attachment_id : true;
     }
 
     /**
@@ -433,7 +544,8 @@ class Attachment extends \Module
         $success = true;
 
         foreach ($attachment_ids as $attachment_id) {
-            $success = $success && $this->publishFile($attachment_id, $component, $position_type, $position_id);
+            $success =
+                $success && $this->publishFile($attachment_id, $component, $position_type, $position_id) !== false;
         }
 
         if ($success === true && $replacement === true) {
