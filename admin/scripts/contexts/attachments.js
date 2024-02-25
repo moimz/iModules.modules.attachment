@@ -6,7 +6,7 @@
  * @file /modules/member/admin/scripts/attachments.ts
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 2. 3.
+ * @modified 2024. 2. 25.
  */
 Admin.ready(async () => {
     const me = Admin.getModule('attachment');
@@ -245,8 +245,9 @@ Admin.ready(async () => {
                         menu.add({
                             text: me.printText('admin.drafts.delete'),
                             iconClass: 'mi mi-trash',
-                            handler: () => {
+                            handler: async () => {
                                 me.drafts.delete();
+                                return true;
                             },
                         });
                     },
@@ -257,8 +258,9 @@ Admin.ready(async () => {
                         menu.add({
                             text: me.printText('admin.drafts.delete'),
                             iconClass: 'mi mi-trash',
-                            handler: () => {
+                            handler: async () => {
                                 me.drafts.delete();
+                                return true;
                             },
                         });
                         // @todo 일괄 다운로드
@@ -357,8 +359,9 @@ Admin.ready(async () => {
                         menu.add({
                             text: me.printText('admin.trashes.delete'),
                             iconClass: 'mi mi-trash',
-                            handler: () => {
+                            handler: async () => {
                                 me.trashes.delete();
+                                return true;
                             },
                         });
                     },
@@ -369,8 +372,9 @@ Admin.ready(async () => {
                         menu.add({
                             text: me.printText('admin.trashes.delete'),
                             iconClass: 'mi mi-trash',
-                            handler: () => {
+                            handler: async () => {
                                 me.trashes.delete();
+                                return true;
                             },
                         });
                         // @todo 일괄 다운로드
