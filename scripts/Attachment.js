@@ -6,7 +6,7 @@
  * @file /modules/attachment/scripts/Attachment.ts
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 2. 9.
+ * @modified 2024. 2. 25.
  */
 var modules;
 (function (modules) {
@@ -243,8 +243,9 @@ var modules;
                         },
                         file: file,
                     };
+                    draft.attachment.download = URL.createObjectURL(draft.file);
                     if (['image', 'svg', 'icon'].includes(draft.attachment.type) !== false) {
-                        draft.attachment.thumbnail = draft.attachment.view = URL.createObjectURL(draft.file);
+                        draft.attachment.thumbnail = draft.attachment.view = draft.attachment.download;
                     }
                     this.files.push(draft);
                     added.push(draft);

@@ -7,7 +7,7 @@
  * @file /modules/attachment/dtos/Attachment.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2023. 4. 10.
+ * @modified 2024. 2. 25.
  */
 namespace modules\attachment\dtos;
 class Attachment
@@ -479,7 +479,7 @@ class Attachment
      */
     public function isViewable(): bool
     {
-        return in_array($this->getType(), ['image', 'svg', 'icon', 'text']) == true ||
+        return in_array($this->getType(), ['image', 'svg', 'icon', 'text', 'video']) == true ||
             in_array($this->getExtension(), ['pdf']) == true;
     }
 
