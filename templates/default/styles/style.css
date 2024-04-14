@@ -197,11 +197,11 @@ div[data-role='module'][data-module='attachment'][data-template='default'] {
                         }
 
                         &[data-action='download'] > i::before {
-                            content: '\ec11';
+                            content: '\e434';
                         }
 
                         &[data-action='insert'] > i::before {
-                            content: '\eb00';
+                            content: '\e402';
                         }
 
                         > span {
