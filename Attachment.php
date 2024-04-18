@@ -8,7 +8,7 @@
  * @file /modules/attachment/Attachment.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 2. 11.
+ * @modified 2024. 4. 18.
  */
 namespace modules\attachment;
 class Attachment extends \Module
@@ -569,11 +569,15 @@ class Attachment extends \Module
     /**
      * 첨부파일을 삭제한다.
      *
-     * @param string $attachment_id 삭제할 첨부파일고유값
+     * @param ?string $attachment_id 삭제할 첨부파일고유값
      * @return bool $success
      */
-    public function deleteFile(string $attachment_id): bool
+    public function deleteFile(?string $attachment_id): bool
     {
+        if ($attachment_id === null) {
+            return true;
+        }
+
         $attachment = $this->getAttachment($attachment_id);
         if ($attachment === null) {
             return false;
