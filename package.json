@@ -198,7 +198,7 @@
                 },
                 "position_id": {
                     "type": "varchar",
-                    "length": 50,
+                    "length": 100,
                     "comment": "첨부위치고유값"
                 },
                 "name": {
