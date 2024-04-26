@@ -461,16 +461,6 @@ class Attachment extends \Module
                         'created_at' => time(),
                     ])
                     ->execute();
-
-                if ($attachment->isResizable() == true) {
-                    if (is_file($attachment->getPath() . '.view') == true) {
-                        unlink($attachment->getPath() . '.view');
-                    }
-
-                    if (is_file($attachment->getPath() . '.thumbnail') == true) {
-                        unlink($attachment->getPath() . '.thumbnail');
-                    }
-                }
             } elseif ($file->getPath() != $attachment->getPath()) {
                 unlink($attachment->getPath());
             }
