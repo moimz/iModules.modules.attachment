@@ -219,6 +219,11 @@
                     "type": "json",
                     "is_null": true,
                     "comment": "추가정보"
+                },
+                "downloads": {
+                    "type": "int",
+                    "default": 0,
+                    "comment": "다운로드수"
                 }
             },
             "indexes": {
