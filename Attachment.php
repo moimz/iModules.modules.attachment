@@ -8,7 +8,7 @@
  * @file /modules/attachment/Attachment.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 4. 18.
+ * @modified 2024. 5. 15.
  */
 namespace modules\attachment;
 class Attachment extends \Module
@@ -156,6 +156,31 @@ class Attachment extends \Module
         }
 
         return self::$_attachments[$attachment_id];
+    }
+
+    /**
+     * 특정위치에 첨부된 첨부파일목록을 가져온다.
+     *
+     * @param \Component $component 이동할 컴포넌트객체
+     * @param string $position_type 이동할 업로드위치종류
+     * @param string|int $position_id 이동할 업로드위치고유값
+     * @return \modules\attachment\dtos\Attachment[] $attachments 첨부파일목록
+     */
+    public function getAttachments(\Component $component, string $position_type, string|int $position_id): array
+    {
+        $attachments = $this->db()
+            ->select(['attachment_id'])
+            ->from($this->table('attachments'))
+            ->where('component_type', $component->getType())
+            ->where('component_name', $component->getName())
+            ->where('position_type', $position_type)
+            ->where('position_id', $position_id)
+            ->get();
+        foreach ($attachments as &$attachment) {
+            $attachment = $this->getAttachment($attachment->attachment_id);
+        }
+
+        return $attachments;
     }
 
     /**
