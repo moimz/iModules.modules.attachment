@@ -6,7 +6,7 @@
  * @file /modules/attachment/scripts/Attachment.ts
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 2. 25.
+ * @modified 2024. 5. 15.
  */
 var modules;
 (function (modules) {
@@ -287,6 +287,7 @@ var modules;
                 }
                 this.files.splice(this.files.indexOf(file), 1);
                 Html.get('ul[data-role=files] > li[data-index="' + file.index.toString() + '"]', this.$dom).remove();
+                this.editor?.removeAttachment(file);
                 this.#updateFiles();
                 this.#upload();
             }
