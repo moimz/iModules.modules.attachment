@@ -11,7 +11,7 @@
 var modules;
 (function (modules) {
     let attachment;
-    (function (attachment) {
+    (function (attachment_1) {
         let admin;
         (function (admin) {
             class Attachment extends modules.admin.admin.Component {
@@ -68,6 +68,34 @@ var modules;
                         ],
                     });
                 }
+                /**
+                 * 첨부파일관리
+                 */
+                attachments = {
+                    /**
+                     * 첨부파일을 삭제한다.
+                     */
+                    delete: () => {
+                        const attachments = Aui.getComponent('attachments');
+                        const attachment_ids = [];
+                        for (const attachment of attachments.getSelections()) {
+                            attachment_ids.push(attachment.get('attachment_id'));
+                        }
+                        if (attachment_ids.length == 0) {
+                            return;
+                        }
+                        Aui.Message.delete({
+                            url: this.getProcessUrl('attachments'),
+                            params: { attachment_ids: attachment_ids.join(',') },
+                            message: this.printText('admin.attachments.actions.delete'),
+                            handler: async (results) => {
+                                if (results.success == true) {
+                                    attachments.getStore().reload();
+                                }
+                            },
+                        });
+                    },
+                };
                 /**
                  * 임시파일관리
                  */
@@ -254,6 +282,6 @@ var modules;
                 };
             }
             admin.Attachment = Attachment;
-        })(admin = attachment.admin || (attachment.admin = {}));
+        })(admin = attachment_1.admin || (attachment_1.admin = {}));
     })(attachment = modules.attachment || (modules.attachment = {}));
 })(modules || (modules = {}));

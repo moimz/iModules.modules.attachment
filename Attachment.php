@@ -461,6 +461,10 @@ class Attachment extends \Module
 
         if ($attachment->isPublished() == false) {
             $hash = $attachment->getHash();
+            if (strlen($hash) == 0) {
+                $attachment->update();
+                $hash = $attachment->getHash();
+            }
             $file = $this->getFile($hash);
             if ($file === null) {
                 if (is_file($attachment->getPath()) == false) {
@@ -756,7 +760,8 @@ class Attachment extends \Module
             return false;
         }
 
-        return $draft_id;
+        $updated = $this->getAttachment($draft_id)?->update();
+        return $updated === true ? $draft_id : false;
     }
 
     /**

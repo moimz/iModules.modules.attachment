@@ -122,6 +122,15 @@ Admin.ready(async () => {
                     },
                     openMenu: (menu, record) => {
                         menu.setTitle(record.get('name'));
+
+                        menu.add({
+                            text: me.printText('admin.attachments.delete'),
+                            iconClass: 'mi mi-trash',
+                            handler: async () => {
+                                me.attachments.delete();
+                                return true;
+                            },
+                        });
                     },
                     openMenus: (menu, selections) => {
                         menu.setTitle(
@@ -129,6 +138,15 @@ Admin.ready(async () => {
                                 count: selections.length.toString(),
                             })
                         );
+
+                        menu.add({
+                            text: me.printText('admin.attachments.delete'),
+                            iconClass: 'mi mi-trash',
+                            handler: async () => {
+                                me.attachments.delete();
+                                return true;
+                            },
+                        });
 
                         // @todo 일괄 다운로드
                     },

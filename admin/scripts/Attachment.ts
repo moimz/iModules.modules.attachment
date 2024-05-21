@@ -67,6 +67,37 @@ namespace modules {
                 }
 
                 /**
+                 * 첨부파일관리
+                 */
+                attachments = {
+                    /**
+                     * 첨부파일을 삭제한다.
+                     */
+                    delete: (): void => {
+                        const attachments = Aui.getComponent('attachments') as Aui.Grid.Panel;
+                        const attachment_ids = [];
+                        for (const attachment of attachments.getSelections()) {
+                            attachment_ids.push(attachment.get('attachment_id'));
+                        }
+
+                        if (attachment_ids.length == 0) {
+                            return;
+                        }
+
+                        Aui.Message.delete({
+                            url: this.getProcessUrl('attachments'),
+                            params: { attachment_ids: attachment_ids.join(',') },
+                            message: this.printText('admin.attachments.actions.delete'),
+                            handler: async (results) => {
+                                if (results.success == true) {
+                                    attachments.getStore().reload();
+                                }
+                            },
+                        });
+                    },
+                };
+
+                /**
                  * 임시파일관리
                  */
                 drafts = {
