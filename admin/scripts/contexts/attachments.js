@@ -105,7 +105,8 @@ Admin.ready(async () => {
                         text: (await me.getText('admin.attachments.size')),
                         dataIndex: 'size',
                         sortable: true,
-                        width: 90,
+                        width: 100,
+                        textAlign: 'right',
                         textClass: 'numeric small',
                         renderer: (value) => {
                             return Format.size(value);
