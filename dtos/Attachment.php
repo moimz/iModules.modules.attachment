@@ -93,14 +93,14 @@ class Attachment
     private int $_expired_at;
 
     /**
-     * @var int $_download 다운로드수
+     * @var int $_downloads 다운로드수
      */
-    private int $_download;
+    private int $_downloads;
 
     /**
-     * @var ?object $_extras 추가정보
+     * @var mixed $_extras 추가정보
      */
-    private ?object $_extras;
+    private mixed $_extras;
 
     /**
      * 파일 구조체를 정의한다.
@@ -115,10 +115,11 @@ class Attachment
             $this->_component_name = $attachment->component_name;
             $this->_position_type = $attachment->position_type;
             $this->_position_id = $attachment->position_id;
-            $this->_download = $attachment->download;
+            $this->_downloads = $attachment->downloads;
             $this->_extras = json_decode($attachment->extras ?? '');
         } else {
             $this->_id = $attachment->draft_id;
+            $this->_extras = json_decode($attachment->extras ?? '');
         }
 
         if ($attachment->hash !== null) {
@@ -360,6 +361,16 @@ class Attachment
     public function getPositionId(): ?string
     {
         return isset($this->_position_id) == true ? $this->_position_id : null;
+    }
+
+    /**
+     * 파일 추가정보를 가져온다.
+     *
+     * @return mixed $extras
+     */
+    public function getExtras(): mixed
+    {
+        return $this->_extras;
     }
 
     /**

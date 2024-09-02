@@ -504,6 +504,7 @@ class Attachment extends \Module
                     'position_id' => $position_id,
                     'name' => $attachment->getName(),
                     'created_at' => time(),
+                    'extras' => $attachment->getExtras() === null ? null : \Format::toJson($attachment->getExtras()),
                 ])
                 ->execute();
 
@@ -728,9 +729,10 @@ class Attachment extends \Module
      * 경로상의 파일로 임시파일을 생성하고 파일을 임시파일경로로 이동한다.
      *
      * @param string $path 파일경로
+     * @param mixed $extras 추가정보
      * @return string|bool $draft_id 임시파일고유값
      */
-    public function createDraftByPath(string $path): string|bool
+    public function createDraftByPath(string $path, mixed $extras = null): string|bool
     {
         if (is_file($path) == false) {
             return false;
@@ -748,6 +750,7 @@ class Attachment extends \Module
                 'size' => filesize($path),
                 'created_at' => time(),
                 'expired_at' => time() + 60 * 60 * 24,
+                'extras' => $extras === null ? null : \Format::toJson($extras),
             ])
             ->execute();
 
