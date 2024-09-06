@@ -6,7 +6,7 @@
  * @file /modules/member/admin/scripts/attachments.ts
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 2. 25.
+ * @modified 2024. 9. 6.
  */
 Admin.ready(async () => {
     const me = Admin.getModule('attachment') as modules.attachment.admin.Attachment;
@@ -22,7 +22,7 @@ Admin.ready(async () => {
                 id: 'attachments',
                 iconClass: 'xi xi-upload',
                 title: (await me.getText('admin.attachments.title')) as string,
-                selection: { selectable: true, display: 'check' },
+                selection: { selectable: true, type: 'check' },
                 autoLoad: false,
                 border: false,
                 layout: 'fit',
@@ -157,7 +157,7 @@ Admin.ready(async () => {
                 id: 'drafts',
                 iconClass: 'xi xi-marquee-add',
                 title: (await me.getText('admin.drafts.title')) as string,
-                selection: { selectable: true, display: 'check' },
+                selection: { selectable: true, type: 'check' },
                 autoLoad: false,
                 border: false,
                 layout: 'fit',
@@ -303,7 +303,7 @@ Admin.ready(async () => {
                 id: 'trashes',
                 iconClass: 'xi xi-trash',
                 title: (await me.getText('admin.trashes.title')) as string,
-                selection: { selectable: true, display: 'check' },
+                selection: { selectable: true, type: 'check' },
                 autoLoad: false,
                 border: false,
                 layout: 'fit',
