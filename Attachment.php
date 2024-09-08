@@ -8,7 +8,7 @@
  * @file /modules/attachment/Attachment.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 5. 15.
+ * @modified 2024. 9. 9.
  */
 namespace modules\attachment;
 class Attachment extends \Module
@@ -631,7 +631,10 @@ class Attachment extends \Module
                     ->where('hash', $attachment->getHash())
                     ->execute();
 
-                unlink($attachment->getPath());
+                if (is_file($attachment->getPath()) == true) {
+                    unlink($attachment->getPath());
+                }
+
                 if ($attachment->isResizable() == true) {
                     if (is_file($attachment->getPath() . '.view') == true) {
                         unlink($attachment->getPath() . '.view');
