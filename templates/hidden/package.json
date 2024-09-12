@@ -1,0 +1,15 @@
+{
+    "title": {
+        "ko": "파일업로더 숨김 템플릿"
+    },
+    "version": "4.0.0",
+    "author": {
+        "name": "Arzz",
+        "email": "arzz@arzz.com"
+    },
+    "homepage": "https://www.imodules.io",
+    "language": "ko",
+    "styles": [
+        "/styles/style.css"
+    ]
+}
