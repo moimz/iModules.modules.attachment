@@ -65,12 +65,24 @@ if (preg_match('/bytes ([0-9]+)\-([0-9]+)\/([0-9]+)/', $_SERVER['HTTP_CONTENT_RA
 
     if ($rangeEnd + 1 === $fileSize) {
         if (is_file($filePath) == false || filesize($filePath) != $fileSize) {
+            $me->deleteFile($draft->draft_id);
+
             $results->success = false;
             $results->status = 'FAIL';
+            $results->message = $me->getErrorText('FILE_SIZE_MISMATCHED');
             return;
         }
 
         $file = $me->getRawFile($filePath);
+
+        if ($draft->type == 'image' && $file->getType() != 'image') {
+            $me->deleteFile($draft->draft_id);
+
+            $results->success = false;
+            $results->status = 'FAIL';
+            $results->message = $me->getErrorText('TYPE_MISMATCHED');
+            return;
+        }
 
         $me->db()
             ->update($me->table('drafts'), [
@@ -86,6 +98,7 @@ if (preg_match('/bytes ([0-9]+)\-([0-9]+)\/([0-9]+)/', $_SERVER['HTTP_CONTENT_RA
             ->execute();
 
         $results->success = true;
+        $results->draft = $draft;
         $results->id = $draft_id;
         $results->status = 'COMPLETE';
         $results->uploaded = $fileSize;

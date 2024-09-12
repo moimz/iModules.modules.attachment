@@ -7,7 +7,7 @@
  * @file /modules/attachment/processes/draft.post.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 1. 26.
+ * @modified 2024. 9. 12.
  *
  * @var \modules\attachment\Attachment $me
  */
@@ -18,9 +18,10 @@ if (defined('__IM_PROCESS__') == false) {
 $errors = [];
 $name = Input::get('name', $errors);
 $size = Input::get('size', $errors);
+$type = Input::get('type');
 
 if (count($errors) == 0) {
-    $draft_id = $me->createDraftByName($name, $size);
+    $draft_id = $me->createDraftByName($name, $size, $type);
 
     $results->success = true;
     $results->upload = $me->getProcessUrl('upload/' . $draft_id) . '?debug=true';
