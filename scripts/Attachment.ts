@@ -6,7 +6,7 @@
  * @file /modules/attachment/scripts/Attachment.ts
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 5. 15.
+ * @modified 2024. 9. 12.
  */
 namespace modules {
     export namespace attachment {
@@ -291,9 +291,10 @@ namespace modules {
              * 선택된 파일을 대기열에 추가한다.
              *
              * @param {FileList} files - 추가할 파일객체
+             * @param {string} allowed - 허용할 파일종류
              * @return {FileList} modules.attachment.Uploader.File[] - 추가된 파일객체
              */
-            add(files: FileList): modules.attachment.Uploader.File[] {
+            add(files: FileList, allowed: string = null): modules.attachment.Uploader.File[] {
                 const added = [];
                 for (const file of files) {
                     if (file.size == 0) {
@@ -319,7 +320,7 @@ namespace modules {
                         attachment: {
                             id: null,
                             name: Format.normalizer(name),
-                            type: this.getType(file.type),
+                            type: allowed ?? this.getType(file.type),
                             mime: file.type,
                             extension: this.getExtension(name),
                             size: file.size,
@@ -618,7 +619,14 @@ namespace modules {
 
                         this.#upload();
                     } else {
-                        // @todo FAIL
+                        file.status = 'FAIL';
+
+                        if (results.message) {
+                            this.showError(results.message);
+                        }
+
+                        this.fireEvent('uploaded', [file, this]);
+                        this.#update(file);
                     }
                 });
                 this.request.addEventListener('abort', () => {
@@ -736,6 +744,10 @@ namespace modules {
                     return;
                 }
 
+                if (file.status == 'FAIL') {
+                    this.#remove(file);
+                }
+
                 $item.setData('status', file.status);
 
                 const $preview = Html.get('div[data-role=preview]', $item);
@@ -830,6 +842,15 @@ namespace modules {
              */
             isUploading(): boolean {
                 return this.uploading;
+            }
+
+            /**
+             * 에러메시지를 표시한다.
+             *
+             * @param {string} message
+             */
+            showError(message: string): void {
+                iModules.Modal.show(Language.printErrorText('TITLE'), message);
             }
 
             /**

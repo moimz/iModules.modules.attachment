@@ -6,7 +6,7 @@
  * @file /modules/attachment/scripts/Attachment.ts
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 5. 15.
+ * @modified 2024. 9. 12.
  */
 var modules;
 (function (modules) {
@@ -208,9 +208,10 @@ var modules;
              * 선택된 파일을 대기열에 추가한다.
              *
              * @param {FileList} files - 추가할 파일객체
+             * @param {string} allowed - 허용할 파일종류
              * @return {FileList} modules.attachment.Uploader.File[] - 추가된 파일객체
              */
-            add(files) {
+            add(files, allowed = null) {
                 const added = [];
                 for (const file of files) {
                     if (file.size == 0) {
@@ -233,7 +234,7 @@ var modules;
                         attachment: {
                             id: null,
                             name: Format.normalizer(name),
-                            type: this.getType(file.type),
+                            type: allowed ?? this.getType(file.type),
                             mime: file.type,
                             extension: this.getExtension(name),
                             size: file.size,
@@ -491,7 +492,12 @@ var modules;
                         this.#upload();
                     }
                     else {
-                        // @todo FAIL
+                        file.status = 'FAIL';
+                        if (results.message) {
+                            this.showError(results.message);
+                        }
+                        this.fireEvent('uploaded', [file, this]);
+                        this.#update(file);
                     }
                 });
                 this.request.addEventListener('abort', () => {
@@ -589,6 +595,9 @@ var modules;
                 if ($item.getEl() === null) {
                     return;
                 }
+                if (file.status == 'FAIL') {
+                    this.#remove(file);
+                }
                 $item.setData('status', file.status);
                 const $preview = Html.get('div[data-role=preview]', $item);
                 const $icon = Html.get('i', $preview);
@@ -665,6 +674,14 @@ var modules;
              */
             isUploading() {
                 return this.uploading;
+            }
+            /**
+             * 에러메시지를 표시한다.
+             *
+             * @param {string} message
+             */
+            showError(message) {
+                iModules.Modal.show(Language.printErrorText('TITLE'), message);
             }
             /**
              * 이벤트리스너를 등록한다.

@@ -8,7 +8,7 @@
  * @file /modules/attachment/Attachment.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 9. 9.
+ * @modified 2024. 9. 12.
  */
 namespace modules\attachment;
 class Attachment extends \Module
@@ -710,13 +710,14 @@ class Attachment extends \Module
      * @param int $size 파일크기
      * @return string $draft_id 임시파일고유값
      */
-    public function createDraftByName(string $name, int $size): string
+    public function createDraftByName(string $name, int $size, string $type = null): string
     {
         $draft_id = $this->createDraftId($name . $size);
         $this->db()
             ->insert($this->table('drafts'), [
                 'draft_id' => $draft_id,
                 'name' => $name,
+                'type' => $type,
                 'path' => $this->getDraftDir() . '/' . $draft_id . '-' . \Format::random(4),
                 'extension' => $this->getFileExtension($name),
                 'size' => $size,
