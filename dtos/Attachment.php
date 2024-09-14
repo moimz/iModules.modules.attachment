@@ -7,7 +7,7 @@
  * @file /modules/attachment/dtos/Attachment.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 2. 25.
+ * @modified 2024. 9. 14.
  */
 namespace modules\attachment\dtos;
 class Attachment
@@ -356,9 +356,9 @@ class Attachment
     /**
      * 파일이 첨부된 위치 고유값을 가져온다.
      *
-     * @return ?string $position_id
+     * @return string|int $position_id
      */
-    public function getPositionId(): ?string
+    public function getPositionId(): string|int
     {
         return isset($this->_position_id) == true ? $this->_position_id : null;
     }
