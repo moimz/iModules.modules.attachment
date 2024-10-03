@@ -7,7 +7,7 @@
  * @file /modules/attachment/dtos/Attachment.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 9. 14.
+ * @modified 2024. 10. 3.
  */
 namespace modules\attachment\dtos;
 class Attachment
@@ -315,6 +315,51 @@ class Attachment
     public function getHeight(): int
     {
         return $this->_height;
+    }
+
+    /**
+     * 이미지파일을 출력할때 사용할 이미지 스타일을 가져온다.
+     *
+     * @param ?string $style 추가할 스타일
+     * @return ?string $style 이미지 크기가 포함된 스타일
+     */
+    public function getStyle(?string $style = null): ?string
+    {
+        $styles = new \stdClass();
+        $tokens = $style === null ? [] : explode(';', $style);
+        foreach ($tokens as $token) {
+            $temp = explode(':', $token);
+            $name = strtolower(array_shift($temp));
+            $value = implode(':', $temp);
+            $styles->{$name} = $value;
+        }
+
+        $width = null;
+        $height = null;
+        if ($this->_width > 0 && $this->_height > 0) {
+            $width = $styles->width ?? $this->_width;
+            $height = $styles->height ?? $this->_height;
+        }
+
+        if ($width !== null && $height !== null) {
+            $ratioX = $ratioY = null;
+            if (preg_match('/([0-9]+)/', $width, $match) == true) {
+                $ratioX = $match[1];
+            }
+
+            if (preg_match('/([0-9]+)/', $height, $match) == true) {
+                $ratioY = $match[1];
+            }
+
+            $styles->{'aspect-ratio'} = $ratioX . '/' . $ratioY;
+        }
+
+        $style = [];
+        foreach ($styles as $key => $value) {
+            $style[] = $key . ': ' . $value;
+        }
+
+        return count($style) == 0 ? null : implode('; ', $style);
     }
 
     /**
