@@ -334,10 +334,12 @@ class Attachment
             $styles->{$name} = $value;
         }
 
+        $styles->width ??= $this->_width . 'px';
+
         $width = null;
         $height = null;
         if ($this->_width > 0 && $this->_height > 0) {
-            $width = $styles->width ?? $this->_width;
+            $width = $styles->width;
             $height = $styles->height ?? $this->_height;
         }
 
