@@ -7,7 +7,7 @@
  * @file /modules/attachment/dtos/Attachment.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 10. 3.
+ * @modified 2024. 10. 8.
  */
 namespace modules\attachment\dtos;
 class Attachment
@@ -381,13 +381,7 @@ class Attachment
      */
     public function getComponent(): ?\Component
     {
-        if (isset($this->_component_type) == true && isset($this->_component_name) == true) {
-            if ($this->_component_type == 'module') {
-                return \Modules::get($this->_component_name);
-            }
-        }
-
-        return null;
+        return \Component::get($this->_component_type, $this->_component_name);
     }
 
     /**
