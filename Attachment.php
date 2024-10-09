@@ -8,7 +8,7 @@
  * @file /modules/attachment/Attachment.php
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 9. 12.
+ * @modified 2024. 10. 9.
  */
 namespace modules\attachment;
 class Attachment extends \Module
@@ -69,6 +69,21 @@ class Attachment extends \Module
     public function getDraftPath(): string
     {
         return \Configs::attachment() . '/' . $this->getDraftDir();
+    }
+
+    /**
+     * 임시폴더를 가져온다.
+     *
+     * @return string $dir 폴더
+     */
+    public function getTempPath(): string
+    {
+        $path = \Configs::attachment() . '/temp';
+        if (is_dir($path) == true || \File::createDirectory($path) == true) {
+            return $path;
+        }
+
+        return $this->getDraftPath();
     }
 
     /**
