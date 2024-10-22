@@ -6,7 +6,7 @@
  * @file /modules/member/admin/scripts/attachments.ts
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 9. 6.
+ * @modified 2024. 10. 22.
  */
 Admin.ready(async () => {
     const me = Admin.getModule('attachment') as modules.attachment.admin.Attachment;
@@ -14,14 +14,14 @@ Admin.ready(async () => {
     return new Aui.Tab.Panel({
         id: 'attachments-context',
         iconClass: 'xi xi-upload',
-        title: (await me.getText('admin.contexts.attachments')) as string,
+        title: await me.getText('admin.contexts.attachments'),
         border: false,
         layout: 'fit',
         items: [
             new Aui.Grid.Panel({
                 id: 'attachments',
                 iconClass: 'xi xi-upload',
-                title: (await me.getText('admin.attachments.title')) as string,
+                title: await me.getText('admin.attachments.title'),
                 selection: { selectable: true, type: 'check' },
                 autoLoad: false,
                 border: false,
@@ -29,7 +29,7 @@ Admin.ready(async () => {
                 topbar: [
                     new Aui.Form.Field.Search({
                         width: 200,
-                        emptyText: (await me.getText('keyword')) as string,
+                        emptyText: await me.getText('keyword'),
                         handler: async () => {
                             //
                         },
@@ -57,14 +57,14 @@ Admin.ready(async () => {
                 }),
                 columns: [
                     {
-                        text: (await me.getText('admin.attachments.attachment_id')) as string,
+                        text: await me.getText('admin.attachments.attachment_id'),
                         dataIndex: 'attachment_id',
                         sortable: true,
                         width: 275,
                         textClass: 'monospace small',
                     },
                     {
-                        text: (await me.getText('admin.attachments.name')) as string,
+                        text: await me.getText('admin.attachments.name'),
                         dataIndex: 'name',
                         sortable: true,
                         width: 180,
@@ -75,7 +75,7 @@ Admin.ready(async () => {
                         },
                     },
                     {
-                        text: (await me.getText('admin.attachments.component')) as string,
+                        text: await me.getText('admin.attachments.component'),
                         dataIndex: 'component_title',
                         width: 140,
                         renderer: (value, record) => {
@@ -86,7 +86,7 @@ Admin.ready(async () => {
                         },
                     },
                     {
-                        text: (await me.getText('admin.attachments.position')) as string,
+                        text: await me.getText('admin.attachments.position'),
                         dataIndex: 'position_type',
                         width: 200,
                         textClass: 'small',
@@ -98,14 +98,14 @@ Admin.ready(async () => {
                         },
                     },
                     {
-                        text: (await me.getText('admin.attachments.path')) as string,
+                        text: await me.getText('admin.attachments.path'),
                         dataIndex: 'path',
                         minWidth: 240,
                         flex: 1,
                         textClass: 'monospace small',
                     },
                     {
-                        text: (await me.getText('admin.attachments.size')) as string,
+                        text: await me.getText('admin.attachments.size'),
                         dataIndex: 'size',
                         sortable: true,
                         width: 100,
@@ -156,7 +156,7 @@ Admin.ready(async () => {
             new Aui.Grid.Panel({
                 id: 'drafts',
                 iconClass: 'xi xi-marquee-add',
-                title: (await me.getText('admin.drafts.title')) as string,
+                title: await me.getText('admin.drafts.title'),
                 selection: { selectable: true, type: 'check' },
                 autoLoad: false,
                 border: false,
@@ -164,7 +164,7 @@ Admin.ready(async () => {
                 topbar: [
                     new Aui.Form.Field.Search({
                         width: 200,
-                        emptyText: (await me.getText('keyword')) as string,
+                        emptyText: await me.getText('keyword'),
                         handler: async () => {
                             //
                         },
@@ -172,7 +172,7 @@ Admin.ready(async () => {
                     '->',
                     new Aui.Button({
                         iconClass: 'mi mi-trash',
-                        text: (await me.getText('admin.drafts.delete_all')) as string,
+                        text: await me.getText('admin.drafts.delete_all'),
                         handler: () => {
                             me.drafts.deleteAll();
                         },
@@ -200,14 +200,14 @@ Admin.ready(async () => {
                 }),
                 columns: [
                     {
-                        text: (await me.getText('admin.drafts.draft_id')) as string,
+                        text: await me.getText('admin.drafts.draft_id'),
                         dataIndex: 'draft_id',
                         sortable: true,
                         width: 275,
                         textClass: 'monospace small',
                     },
                     {
-                        text: (await me.getText('admin.attachments.name')) as string,
+                        text: await me.getText('admin.attachments.name'),
                         dataIndex: 'name',
                         sortable: true,
                         width: 180,
@@ -218,14 +218,14 @@ Admin.ready(async () => {
                         },
                     },
                     {
-                        text: (await me.getText('admin.attachments.path')) as string,
+                        text: await me.getText('admin.attachments.path'),
                         dataIndex: 'path',
                         minWidth: 240,
                         flex: 1,
                         textClass: 'monospace small',
                     },
                     {
-                        text: (await me.getText('admin.attachments.size')) as string,
+                        text: await me.getText('admin.attachments.size'),
                         dataIndex: 'size',
                         sortable: true,
                         width: 90,
@@ -235,7 +235,7 @@ Admin.ready(async () => {
                         },
                     },
                     {
-                        text: (await me.getText('admin.drafts.size')) as string,
+                        text: await me.getText('admin.drafts.size'),
                         dataIndex: 'realsize',
                         width: 90,
                         textClass: 'numeric small',
@@ -244,7 +244,7 @@ Admin.ready(async () => {
                         },
                     },
                     {
-                        text: (await me.getText('admin.attachments.created_at')) as string,
+                        text: await me.getText('admin.attachments.created_at'),
                         dataIndex: 'created_at',
                         sortable: true,
                         width: 150,
@@ -253,7 +253,7 @@ Admin.ready(async () => {
                         },
                     },
                     {
-                        text: (await me.getText('admin.drafts.expired_at')) as string,
+                        text: await me.getText('admin.drafts.expired_at'),
                         dataIndex: 'expired_at',
                         sortable: true,
                         width: 150,
@@ -302,7 +302,7 @@ Admin.ready(async () => {
             new Aui.Grid.Panel({
                 id: 'trashes',
                 iconClass: 'xi xi-trash',
-                title: (await me.getText('admin.trashes.title')) as string,
+                title: await me.getText('admin.trashes.title'),
                 selection: { selectable: true, type: 'check' },
                 autoLoad: false,
                 border: false,
@@ -310,7 +310,7 @@ Admin.ready(async () => {
                 topbar: [
                     new Aui.Form.Field.Search({
                         width: 200,
-                        emptyText: (await me.getText('keyword')) as string,
+                        emptyText: await me.getText('keyword'),
                         handler: async () => {
                             //
                         },
@@ -318,7 +318,7 @@ Admin.ready(async () => {
                     '-',
                     new Aui.Button({
                         iconClass: 'mi mi-search',
-                        text: (await me.getText('admin.trashes.search')) as string,
+                        text: await me.getText('admin.trashes.search'),
                         handler: () => {
                             me.trashes.search();
                         },
@@ -326,7 +326,7 @@ Admin.ready(async () => {
                     '->',
                     new Aui.Button({
                         iconClass: 'mi mi-trash',
-                        text: (await me.getText('admin.trashes.delete_all')) as string,
+                        text: await me.getText('admin.trashes.delete_all'),
                         handler: () => {
                             me.trashes.deleteAll();
                         },
@@ -354,7 +354,7 @@ Admin.ready(async () => {
                 }),
                 columns: [
                     {
-                        text: (await me.getText('admin.trashes.path')) as string,
+                        text: await me.getText('admin.trashes.path'),
                         dataIndex: 'path',
                         sortable: true,
                         minWidth: 300,
@@ -362,7 +362,7 @@ Admin.ready(async () => {
                         textClass: 'monospace small',
                     },
                     {
-                        text: (await me.getText('admin.attachments.size')) as string,
+                        text: await me.getText('admin.attachments.size'),
                         dataIndex: 'size',
                         sortable: true,
                         width: 90,
@@ -372,7 +372,7 @@ Admin.ready(async () => {
                         },
                     },
                     {
-                        text: (await me.getText('admin.trashes.created_at')) as string,
+                        text: await me.getText('admin.trashes.created_at'),
                         dataIndex: 'created_at',
                         sortable: true,
                         width: 150,

@@ -6,7 +6,7 @@
  * @file /modules/attachment/admin/scripts/Attachment.ts
  * @author Arzz <arzz@arzz.com>
  * @license MIT License
- * @modified 2024. 2. 3.
+ * @modified 2024. 10. 22.
  */
 namespace modules {
     export namespace attachment {
@@ -21,10 +21,10 @@ namespace modules {
                     return new Aui.Form.Panel({
                         items: [
                             new Aui.Form.FieldSet({
-                                title: (await this.getText('admin.configs.default')) as string,
+                                title: await this.getText('admin.configs.default'),
                                 items: [
                                     new AdminUi.Form.Field.Template({
-                                        label: (await this.getText('admin.configs.template')) as string,
+                                        label: await this.getText('admin.configs.template'),
                                         name: 'template',
                                         componentType: this.getType(),
                                         componentName: this.getName(),
@@ -32,10 +32,10 @@ namespace modules {
                                 ],
                             }),
                             new Aui.Form.FieldSet({
-                                title: (await this.getText('admin.configs.limits')) as string,
+                                title: await this.getText('admin.configs.limits'),
                                 items: [
                                     new Aui.Form.Field.Container({
-                                        label: (await this.getText('admin.configs.max_file_size')) as string,
+                                        label: await this.getText('admin.configs.max_file_size'),
                                         items: [
                                             new Aui.Form.Field.Number({
                                                 name: 'max_file_size',
@@ -45,10 +45,10 @@ namespace modules {
                                                 value: 'MB',
                                             }),
                                         ],
-                                        helpText: (await this.getText('admin.configs.max_file_size_help')) as string,
+                                        helpText: await this.getText('admin.configs.max_file_size_help'),
                                     }),
                                     new Aui.Form.Field.Container({
-                                        label: (await this.getText('admin.configs.max_upload_size')) as string,
+                                        label: await this.getText('admin.configs.max_upload_size'),
                                         items: [
                                             new Aui.Form.Field.Number({
                                                 name: 'max_upload_size',
@@ -58,7 +58,7 @@ namespace modules {
                                                 value: 'MB',
                                             }),
                                         ],
-                                        helpText: (await this.getText('admin.configs.max_upload_size_help')) as string,
+                                        helpText: await this.getText('admin.configs.max_upload_size_help'),
                                     }),
                                 ],
                             }),
