@@ -136,7 +136,7 @@
                 },
                 "extension": {
                     "type": "varchar",
-                    "length": 4,
+                    "length": 20,
                     "is_null": true,
                     "comment": "파일확장자"
                 },
